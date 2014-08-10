@@ -19,12 +19,12 @@ namespace Daemonizer
 
             var args = Environment.GetCommandLineArgs().ToList();
 
-            if (args.Count != 4)
+            if (args.Count != 4 && args.Count != 5)
             {
                 MessageBox.Show(
                     "Daemonzier.exe is a tool allowing to run processes in daemon mode, monitor process and write error log on failure while notifying the user.\n" +
                     "Amount of args given: "+(args.Count-1)+Environment.NewLine +
-                    "Args: daemonizer.exe <path to executable> <arguments> <directory for log files>", Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    "Args: daemonizer.exe <path to executable> <arguments> <directory for log files> <write_always_log>", Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Environment.Exit(1);
             }
 
@@ -33,6 +33,7 @@ namespace Daemonizer
                 var exePath = args[1];
                 var passedArguments = args[2];
                 var logLocation = args[3];
+                var writeAlways = args.Count> 4 && bool.Parse(args[4]);
 
                 if (File.Exists(exePath) == false)
                 {
@@ -55,15 +56,22 @@ namespace Daemonizer
                     };
                 var p = Process.Start(pi);
                 p.WaitForExit();
+
+                var filename = string.Format("{0}_{1}.txt", Path.GetFileName(exePath), DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss"));
+                var fullPath = Path.Combine(logLocation, filename);
+                var header = string.Format("Executed: {0} with {1}", exePath, passedArguments);
+
                 if (p.ExitCode != 0)
                 {
                     // Write std io to log location
-                    var filename = string.Format("{0}_{1}.txt", Path.GetFileName(exePath), DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss"));
-                    var fullPath = Path.Combine(logLocation, filename);
-                    var header = string.Format("Executed: {0} with {1}", exePath, passedArguments);
-                    File.WriteAllText(fullPath, header+Environment.NewLine+ p.StandardOutput.ReadToEnd());
+                    File.WriteAllText(fullPath, header + Environment.NewLine + p.StandardOutput.ReadToEnd());
 
                     throw new Exception(string.Format("Execution of {0} failed with exit code {1}. See log file '{2}' for more information.", exePath, p.ExitCode, fullPath));
+                }
+
+                if (writeAlways)
+                {
+                    File.WriteAllText(fullPath, header + Environment.NewLine + p.StandardOutput.ReadToEnd());
                 }
                 
 
@@ -73,6 +81,8 @@ namespace Daemonizer
                 MessageBox.Show("Error occurred: " + e, Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
+
+            Environment.Exit(0);
         }
 
     }
