@@ -110,22 +110,24 @@ def detectNewFiles(xmlFile, basePath):
 def detectNewFilesAndAdd(xmlFile, basePath):
 	allFiles = detectNewFiles(xmlFile, basePath)
 	
-	tree = ET.parse(xmlFile)
-	root = tree.getroot()	
+	if len(allFiles) > 0 :
 	
-	print len(root.findall("FILE_ENTRY"))
-	
-	for a in allFiles :
-		newElement = ET.SubElement(root,"FILE_ENTRY")
-		filename = ET.SubElement(newElement,"name")
-		filename.text = a.replace(basePath+"\\","")
-		md5 = ET.SubElement(newElement,"MD5")
-		md5.text = md5sumBase(a)
+		print("Updating "+xmlFile)
+		tree = ET.parse(xmlFile)
+		root = tree.getroot()	
 		
-	tree.write(xmlFile+".second.xml", "utf-8",True)
-	
-	
-	
-	
+		
+		for a in allFiles :
+			newElement = ET.SubElement(root,"FILE_ENTRY")
+			filename = ET.SubElement(newElement,"name")
+			filename.text = a.replace(basePath+"\\","")
+			md5 = ET.SubElement(newElement,"MD5")
+			md5.text = md5sumBase(a)
+			
+		tree.write(xmlFile, "utf-8", True)
+
+	else :
+		print("No xml update needed")
+		
 	return allFiles
 
