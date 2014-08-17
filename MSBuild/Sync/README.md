@@ -21,7 +21,7 @@ ensure the lowest level of integrity, copies the files and ensure integrity agai
 Prerequisites
 -------------
 
-Two tools are required:
+Two(+1) tools are required:
 
 * Obviously [MSBuild](http://msdn.microsoft.com/en-us/library/0k6kkbsd.aspx), which also should be installed on Vista/7/8, check C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe or any update of the .NET framework, e.g. C:\Windows\Microsoft.NET\Framework\*\MSBuild.exe
 * [Robocopy ](http://technet.microsoft.com/en-us/library/cc733145.aspx), which should be installed on Vista/7/8
