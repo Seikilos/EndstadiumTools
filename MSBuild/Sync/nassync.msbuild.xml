@@ -1,0 +1,125 @@
+<Project ToolsVersion="4.0" DefaultTargets="SyncToDestination" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+ 
+    <PropertyGroup>
+        <Fciv>$(MSBuildThisFileDirectory)fciv.exe</Fciv>
+        <FcivErrorFile>$(MSBuildThisFileDirectory)fciv.err</FcivErrorFile>
+        <HashFileName>hash.db.xml</HashFileName>
+        <HashFile>$(temp)\$(HashFileName)</HashFile>
+    </PropertyGroup>
+  
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- Main Target to sync files to a remote destination like a nas -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <Target Name='SyncToDestination' DependsOnTargets="EnsureFiles" >
+
+        <Message Text="Sync to destination from '$(source)' to '$(destination)'" />
+        <CallTarget Targets="Robocopy" />
+        
+        <CallTarget Targets="CreateSourceHash" />
+        <CallTarget Targets="MoveSourceHashToDestination" />
+        
+
+        <CallTarget Targets="SetHashPathHelperToDestination" />
+        
+        
+        <CallTarget Targets="VerifyHash" />
+        
+    </Target>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    
+    
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- 
+        Main Target to sync files from a remote destination to a local machine.
+        This is usefull when the NAS contains the main instance of data which
+        should be regulary synced with local machines.
+    -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <Target Name='SyncFromDestination' DependsOnTargets="EnsureFiles" >
+    
+        <Message Text="Sync from destination from '$(source)' to '$(destination)'" />
+        
+        <!-- this copies the hash db file too! -->
+        <CallTarget Targets="Robocopy" />
+        
+        <CallTarget Targets="SetHashPathHelperToDestination" />
+        <CallTarget Targets="VerifyHash" />
+    
+    </Target>
+    
+    
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    
+    <Target Name="EnsureFiles" >
+        <Error Condition="!Exists('$(Fciv)')" Text="Fciv not found at '$(Fciv)'." />
+        <Error Condition="!Exists('$(source)')" Text="'source' property not found at '$(source)'." />
+        <Error Condition="!Exists('$(destination)')" Text="'destination' property not found at '$(destination)'." />
+    </Target>
+    
+    <Target Name="SetHashPathHelperToDestination" >
+        <!-- Define a property which is used directly by VerifyHash -->
+        <!-- Note: There is a bug in msbuild, CreateProperty and CallTarget in one Target do not work together -->
+        <CreateProperty Value="$(destination)\$(HashFileName)">
+            <Output TaskParameter="Value" PropertyName="HashPath"/>
+        </CreateProperty>
+    </Target>
+  
+    <!-- Counter part to SetHashPathHelperToDestination, points to temp location of hash file -->
+      <Target Name="SetHashPathHelperToTemp" >
+        <CreateProperty Value="$(temp)\$(HashFileName)">
+            <Output TaskParameter="Value" PropertyName="HashPath"/>
+        </CreateProperty>
+    </Target>
+  
+  
+    <Target Name="Robocopy">
+        <Message Text="Invoking Robocopy" />
+
+        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)"' IgnoreExitCode="true">
+        <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
+        </Exec>
+
+        <Message Text="Robocopy exited with $(CommandExitCode)" />
+        <Error Text="Robocopy exit code was $(CommandExitCode)" Condition="$(CommandExitCode)> 3" />
+
+    </Target>
+
+
+    <Target Name="CreateSourceHash" >
+        <Message Text="Computed hashes in $(source)" />
+        <Delete Files="$(HashFile)"/>
+        <Delete Files="$(FcivErrorFile)"/>
+        
+        <Exec Command='$(Fciv) -add "$(source)" -r -xml "$(HashFile)" -bp "$(source)"'  />
+    </Target>
+  
+  
+    <!-- This moves the hash file from temp location to destination -->
+    <Target Name="MoveSourceHashToDestination" >
+        <Message Text="Moving '$(HashFile)' to '$(destination)'" />
+        <Move SourceFiles="$(HashFile)" DestinationFolder="$(destination)" />
+    </Target>
+    
+    <!-- This moves the hash file TO temp location from original location -->
+    <Target Name="MoveHashToTemp" >
+        <Message Text="Moving '$(HashFileName)' to '$(temp)'" />
+        <Move SourceFiles="$(destination)\$(HashFileName)" DestinationFolder="$(temp)" />
+    </Target>
+    
+    <Target Name="VerifyHash" DependsOnTargets="EnsureFiles">
+    
+        <CreateItem Include="$(HashPath)">
+            <Output ItemName="HashPathItem" TaskParameter="Include" />
+        </CreateItem>
+    
+        <CreateProperty Value="%(HashPathItem.RelativeDir)" >
+            <Output TaskParameter="Value" PropertyName="BasePath" />
+        </CreateProperty>
+        
+        <Message Text="Verifying hash on HashPath property: '$(HashPath)'. Base path will be $(BasePath.TrimEnd('\'))" />
+        <Error Condition="!Exists('$(HashPath)')" Text="'HashPath' property not found at '$(HashPath)'." />
+        <Exec Command='$(Fciv) -v -xml "$(HashPath)" -bp "$(BasePath.TrimEnd("\"))"' />
+    </Target>
+
+  
+</Project>
