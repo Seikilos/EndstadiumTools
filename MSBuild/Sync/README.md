@@ -24,39 +24,40 @@ Prerequisites
 Two tools are required:
 
 * [Robocopy ](http://technet.microsoft.com/en-us/library/cc733145.aspx), which should be installed on Vista/7/8
-* [File Checksum Integrity Verifier from Microsoft](http://support.microsoft.com/kb/841290), (it looks like an installer, but it just unpacks the executable, which is then portable. Place it alongside the nassync.msbuild.xml file.
+* [File Checksum Integrity Verifier from Microsoft](http://support.microsoft.com/kb/841290), (it looks like an installer, but it just unpacks the executable, which is then portable). Place it alongside the nassync.msbuild.xml file.
 
 Usage
 -----
 
 Create a msbuild project (for instance relative to the nassync.msbuild.xml file) and reference all directories from and to the backup destination
 
-    <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-        <!--
-        This project includes nas sync and simply contains target calls for arbitrary locations
-        
-        MSBuild location: C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe
-        -->
-        
-        <PropertyGroup>
-            <Script>nassync.msbuild.xml</Script>
-            <ToNas>SyncToDestination</ToNas>
-            <FromNas>SyncFromDestination</FromNas>
-        </PropertyGroup>
-        
-        <Target Name="Build">
-            <MSBuild Properties="source=d:\important_data;destination=\\nas\data\my_data" Projects="$(Script)" Targets="$(ToNas)" />
-            <MSBuild Properties="source=c:\my_mp3;destination=\\nas\music"                Projects="$(Script)" Targets="$(ToNas)" />
+```XML
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!--
+    This project includes nas sync and simply contains target calls for arbitrary locations
+    
+    MSBuild location: C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe
+    -->
+    
+    <PropertyGroup>
+        <Script>nassync.msbuild.xml</Script>
+        <ToNas>SyncToDestination</ToNas>
+        <FromNas>SyncFromDestination</FromNas>
+    </PropertyGroup>
+    
+    <Target Name="Build">
+        <MSBuild Properties="source=d:\important_data;destination=\\nas\data\my_data" Projects="$(Script)" Targets="$(ToNas)" />
+        <MSBuild Properties="source=c:\my_mp3;destination=\\nas\music"                Projects="$(Script)" Targets="$(ToNas)" />
 
-            <!-- This syncs files FROM server to local machine, performs integrity check a priori -->
-            <MSBuild Properties="source=\\nas\music;destination=c:\my_music"              Projects="$(Script)" Targets="$(FromNas)" />
-            
-        </Target>
-    </Project>
-   
+        <!-- This syncs files FROM server to local machine, performs integrity check a priori -->
+        <MSBuild Properties="source=\\nas\music;destination=c:\my_music"              Projects="$(Script)" Targets="$(FromNas)" />
+        
+    </Target>
+</Project>
+```
 
 Disclaimer
 ----------
 This software performs destructive copying, so that the destination will be a perfect clone of the source (with ensured integrity).
-It is NOT a backup solution as syncing infected or broken files results in both locations having broken data.
+It is __NOT__ a backup solution as syncing broken or compromized files results in both locations having broken data.
 The developer is not responsible for any damage this software could potentially do. Use it on your own risk.
