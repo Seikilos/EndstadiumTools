@@ -50,7 +50,7 @@ Create a msbuild project (for instance relative to the nassync.msbuild.xml file)
         <MSBuild Properties="source=d:\important_data;destination=\\nas\data\my_data" Projects="$(Script)" Targets="$(ToNas)" />
         <MSBuild Properties="source=c:\my_mp3;destination=\\nas\music"                Projects="$(Script)" Targets="$(ToNas)" />
 
-        <!-- This syncs files FROM server to local machine, performs integrity check a priori -->
+        <!-- This syncs files FROM server to local machine, performs integrity check before and after copying -->
         <MSBuild Properties="source=\\nas\music;destination=c:\my_music"              Projects="$(Script)" Targets="$(FromNas)" />
         
     </Target>

@@ -1,0 +1,22 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!--
+    This project includes nas sync and simply contains target calls for arbitrary locations
+    
+    MSBuild location: C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe
+    -->
+    
+    <PropertyGroup>
+        <Script>nassync.msbuild.xml</Script>
+        <ToNas>SyncToDestination</ToNas>
+        <FromNas>SyncFromDestination</FromNas>
+    </PropertyGroup>
+    
+    <Target Name="Build">
+        <MSBuild Properties="source=d:\important_data;destination=\\nas\data\my_data" Projects="$(Script)" Targets="$(ToNas)" />
+        <MSBuild Properties="source=c:\my_mp3;destination=\\nas\music"                Projects="$(Script)" Targets="$(ToNas)" />
+
+        <!-- This syncs files FROM server to local machine, performs integrity check before and after copying -->
+        <MSBuild Properties="source=\\nas\music;destination=c:\my_music"              Projects="$(Script)" Targets="$(FromNas)" />
+        
+    </Target>
+</Project>
