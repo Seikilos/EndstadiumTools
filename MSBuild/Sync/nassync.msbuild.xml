@@ -13,6 +13,7 @@
     <Target Name='SyncToDestination' DependsOnTargets="EnsureFiles" >
 
         <Message Text="Sync to destination from '$(source)' to '$(destination)'" />
+    
         <CallTarget Targets="Robocopy" />
         
         <CallTarget Targets="CreateSourceHash" />
@@ -39,6 +40,16 @@
     
         <Message Text="Sync from destination from '$(source)' to '$(destination)'" />
         
+        <!-- 
+            Check integrity first, while this might increase execution time by a large factor, this is important
+            to ensure the remote data has no modification whatsoever.
+        -->
+        <CallTarget Targets="SetHashPathHelperToSource" />
+        <!-- To prevent caching verify hash, use msbuild task, since HashPath is not available in here, redirect it to a sub target -->
+        <CallTarget Targets="InvokeVerifyHash" />
+    
+       
+        
         <!-- this copies the hash db file too! -->
         <CallTarget Targets="Robocopy" />
         
@@ -50,10 +61,22 @@
     
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
+    <Target Name="InvokeVerifyHash" >
+        <!-- Helper to ensure properties are set -->
+          <MSBuild Properties="source=$(source);destination=$(destination);HashPath=$(HashPath)" Projects="$(MSBuildProjectFile)" Targets="VerifyHash" />
+     
+    </Target>
+    
     <Target Name="EnsureFiles" >
         <Error Condition="!Exists('$(Fciv)')" Text="Fciv not found at '$(Fciv)'." />
         <Error Condition="!Exists('$(source)')" Text="'source' property not found at '$(source)'." />
         <Error Condition="!Exists('$(destination)')" Text="'destination' property not found at '$(destination)'." />
+    </Target>
+    
+    <Target Name="SetHashPathHelperToSource" >
+        <CreateProperty Value="$(source)\$(HashFileName)">
+            <Output TaskParameter="Value" PropertyName="HashPath"/>
+        </CreateProperty>
     </Target>
     
     <Target Name="SetHashPathHelperToDestination" >
@@ -65,7 +88,7 @@
     </Target>
   
     <!-- Counter part to SetHashPathHelperToDestination, points to temp location of hash file -->
-      <Target Name="SetHashPathHelperToTemp" >
+    <Target Name="SetHashPathHelperToTemp" >
         <CreateProperty Value="$(temp)\$(HashFileName)">
             <Output TaskParameter="Value" PropertyName="HashPath"/>
         </CreateProperty>
@@ -119,7 +142,6 @@
         <Message Text="Verifying hash on HashPath property: '$(HashPath)'. Base path will be $(BasePath.TrimEnd('\'))" />
         <Error Condition="!Exists('$(HashPath)')" Text="'HashPath' property not found at '$(HashPath)'." />
         <Exec Command='$(Fciv) -v -xml "$(HashPath)" -bp "$(BasePath.TrimEnd("\"))"' />
-    </Target>
-
+    </Target>   
   
 </Project>
