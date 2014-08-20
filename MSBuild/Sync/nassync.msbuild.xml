@@ -5,7 +5,11 @@
         <FcivErrorFile>$(MSBuildThisFileDirectory)fciv.err</FcivErrorFile>
         <HashFileName>hash.db.xml</HashFileName>
         <HashFile>$(temp)\$(HashFileName)</HashFile>
+        <IgnoreFiles>*.ilk *.idb *.obj *.pch *.pdb *.tlb *.vspscc *.vssscc *.ncb *.opensdf *.sdf *.cachefile *.dmp *.exp *.pyc </IgnoreFiles>
+        <IgnoreDirs>ipch</IgnoreDirs>
     </PropertyGroup>
+    
+    <UsingTask TaskName="SyncTasks.FilterFcivXml" AssemblyFile="SyncTasks.dll"/>
   
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <!-- Main Target to sync files to a remote destination like a nas -->
@@ -98,7 +102,7 @@
     <Target Name="Robocopy">
         <Message Text="Invoking Robocopy" />
 
-        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)"' IgnoreExitCode="true">
+        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) /XD $(IgnoreDirs)' IgnoreExitCode="true">
         <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
         </Exec>
 
@@ -114,6 +118,9 @@
         <Delete Files="$(FcivErrorFile)"/>
         
         <Exec Command='$(Fciv) -add "$(source)" -r -xml "$(HashFile)" -bp "$(source)"'  />
+  
+        <FilterFcivXml IgnoreFiles="$(IgnoreFiles)" IgnoreDirs="$(IgnoreDirs)" XmlFile="$(HashFile)" /> 
+
     </Target>
   
   
@@ -143,5 +150,7 @@
         <Error Condition="!Exists('$(HashPath)')" Text="'HashPath' property not found at '$(HashPath)'." />
         <Exec Command='$(Fciv) -v -xml "$(HashPath)" -bp "$(BasePath.TrimEnd("\"))"' />
     </Target>   
+    
+    
   
 </Project>
