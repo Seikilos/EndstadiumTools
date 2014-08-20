@@ -21,9 +21,10 @@ ensure the lowest level of integrity, copies the files and ensure integrity agai
 Prerequisites
 -------------
 
-Two(+1) tools are required:
+Two(+2) tools are required:
 
 * Obviously [MSBuild](http://msdn.microsoft.com/en-us/library/0k6kkbsd.aspx), which also should be installed on Vista/7/8, check C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe or any update of the .NET framework, e.g. C:\Windows\Microsoft.NET\Framework\*\MSBuild.exe
+* Custom build SyncTasks assembly which is available in the C# hive of this repository. Binary is checked in for convenience
 * [Robocopy ](http://technet.microsoft.com/en-us/library/cc733145.aspx), which should be installed on Vista/7/8
 * [File Checksum Integrity Verifier from Microsoft](http://support.microsoft.com/kb/841290), (it looks like an installer, but it just unpacks the executable, which is then portable). Place it alongside the nassync.msbuild.xml file.
 
