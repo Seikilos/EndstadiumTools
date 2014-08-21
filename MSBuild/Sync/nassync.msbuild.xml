@@ -74,6 +74,7 @@
     <Target Name="EnsureFiles" >
         <Error Condition="!Exists('$(Fciv)')" Text="Fciv not found at '$(Fciv)'." />
         <Error Condition="!Exists('$(source)')" Text="'source' property not found at '$(source)'." />
+        <MakeDir Directories="$(destination)" />
         <Error Condition="!Exists('$(destination)')" Text="'destination' property not found at '$(destination)'." />
     </Target>
     
@@ -119,8 +120,18 @@
         
         <Exec Command='$(Fciv) -add "$(source)" -r -xml "$(HashFile)" -bp "$(source)"'  />
   
-        <FilterFcivXml IgnoreFiles="$(IgnoreFiles)" IgnoreDirs="$(IgnoreDirs)" XmlFile="$(HashFile)" /> 
+        <!-- Get all copied files -->
+        <ItemGroup>
+            <CopiedFiles Include="$(destination)/**" />
+        </ItemGroup>
+        
+        <!-- Use @(CopiedFiles->Count()) -->
+  
+        <FilterFcivXml IgnoreFiles="$(IgnoreFiles)" IgnoreDirs="$(IgnoreDirs)" XmlFile="$(HashFile)"> 
+            <Output TaskParameter="FilesInXml" ItemName="FilesInXml"/>
+        </FilterFcivXml>
 
+        <Error Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'" Text="Copied files \(@(CopiedFiles->Count())\) != file count in xml @(FilesInXml)." /> 
     </Target>
   
   
