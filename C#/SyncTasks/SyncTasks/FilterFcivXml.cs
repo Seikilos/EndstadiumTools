@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -12,9 +13,15 @@ namespace SyncTasks
 {
     public class FilterFcivXml : Task
     {
+        [Required]
         public string IgnoreFiles { get; set; }
+        [Required]
         public string IgnoreDirs { get; set; }
+        [Required]
         public string XmlFile { get; set; }
+
+        [Output]
+        public int FilesInXml { get; set; }
 
         private List<string> _fileFilter = new List<string>();
         private List<string> _dirFilter = new List<string>();
@@ -25,13 +32,21 @@ namespace SyncTasks
 
             Log.LogMessage(string.Format("Removing files '{0}' and dirs '{1}' from file '{2}", IgnoreFiles, IgnoreDirs, XmlFile));
 
+            // To count the amount of remaining files simply count the occurrence of <File_Entry
+            var file = File.ReadAllText(XmlFile);
+            var totalFiles = new Regex(Regex.Escape("<FILE_ENTRY")).Matches(file).Count;
             var xml = XDocument.Load(XmlFile);
 
-            xml.Descendants("FILE_ENTRY").Where(e => DeleteThisNode(e.Descendants("name").FirstOrDefault().Value)).Remove();
+            
+            var toRemoveNodes = xml.Descendants("FILE_ENTRY").Where(e => DeleteThisNode(e.Descendants("name").FirstOrDefault().Value));
+            var removeNodes = toRemoveNodes as IList<XElement> ?? toRemoveNodes.ToList();
+            var removed = removeNodes.Count;
+            removeNodes.Remove();
          
 
             xml.Save(XmlFile);
 
+            FilesInXml = totalFiles - removed;
             return true;
         }
 
