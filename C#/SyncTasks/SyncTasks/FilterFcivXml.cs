@@ -89,8 +89,8 @@ namespace SyncTasks
                 throw new FileNotFoundException("Xml file not found", XmlFile);
             }
 
-            _fileFilter = IgnoreFiles.Trim().Split(' ').ToList();
-            _dirFilter = IgnoreDirs.Trim().Split(' ').ToList();
+            _fileFilter = Regex.Matches(IgnoreFiles.Trim(), @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToList();
+            _dirFilter = Regex.Matches(IgnoreDirs.Trim(), @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value.Replace("\"","")).ToList();
         }
     }
 }
