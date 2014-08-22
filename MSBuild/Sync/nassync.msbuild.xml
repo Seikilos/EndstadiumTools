@@ -6,7 +6,9 @@
         <HashFileName>hash.db.xml</HashFileName>
         <HashFile>$(temp)\$(HashFileName)</HashFile>
         <IgnoreFiles>*.ilk *.idb *.obj *.pch *.pdb *.tlb *.vspscc *.vssscc *.ncb *.opensdf *.sdf *.cachefile *.dmp *.exp *.pyc </IgnoreFiles>
-        <IgnoreDirs>ipch</IgnoreDirs>
+        <IgnoreDirs>ipch "System Volume Information" $RECYCLE.BIN</IgnoreDirs>
+        <AdditionalIgnoreFiles /> <!-- Can be passed to ignore more files -->
+        <AdditionalIgnoreDirs /> <!-- Can be passed to ignore more dirs -->
     </PropertyGroup>
     
     <UsingTask TaskName="SyncTasks.FilterFcivXml" AssemblyFile="SyncTasks.dll"/>
@@ -103,13 +105,12 @@
     <Target Name="Robocopy">
         <Message Text="Invoking Robocopy" />
 
-        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) /XD $(IgnoreDirs)' IgnoreExitCode="true">
+        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) $(AdditionalIgnoreFiles) /XD $(IgnoreDirs) $(AdditionalIgnoreDirs)' IgnoreExitCode="true">
         <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
         </Exec>
 
         <Message Text="Robocopy exited with $(CommandExitCode)" />
         <Error Text="Robocopy exit code was $(CommandExitCode)" Condition="$(CommandExitCode)> 3" />
-
     </Target>
 
 
@@ -127,11 +128,11 @@
         
         <!-- Use @(CopiedFiles->Count()) -->
   
-        <FilterFcivXml IgnoreFiles="$(IgnoreFiles)" IgnoreDirs="$(IgnoreDirs)" XmlFile="$(HashFile)"> 
+        <FilterFcivXml IgnoreFiles="$(IgnoreFiles) $(AdditionalIgnoreFiles)" IgnoreDirs="$(IgnoreDirs) $(AdditionalIgnoreDirs)" XmlFile="$(HashFile)"> 
             <Output TaskParameter="FilesInXml" ItemName="FilesInXml"/>
         </FilterFcivXml>
 
-        <Error Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'" Text="Copied files \(@(CopiedFiles->Count())\) != file count in xml @(FilesInXml)." /> 
+        <Error Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'" Text="Copied files (@(CopiedFiles->Count())) != file count in xml (@(FilesInXml))." /> 
     </Target>
   
   
