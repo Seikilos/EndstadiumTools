@@ -23,8 +23,7 @@ namespace SyncTasks
         [Output]
         public int FilesInXml { get; set; }
 
-        private List<string> _fileFilter = new List<string>();
-        private List<string> _dirFilter = new List<string>();
+        private FilterUtils _filterUtils;
 
         public override bool Execute()
         {
@@ -57,15 +56,7 @@ namespace SyncTasks
                 return false;
             }
 
-            var filterFound = _fileFilter.Any(f => nodeValue.Contains(f.Replace("*", "")));
-
-            if (filterFound)
-            {
-                return true;
-            }
-
-            return _dirFilter.Any(d => nodeValue.Contains(d.Replace("*", "")+"\\"));
-
+            return _filterUtils.MatchesFilter(nodeValue);
         }
 
         private void CheckParams()
@@ -89,8 +80,9 @@ namespace SyncTasks
                 throw new FileNotFoundException("Xml file not found", XmlFile);
             }
 
-            _fileFilter = Regex.Matches(IgnoreFiles.Trim(), @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToList();
-            _dirFilter = Regex.Matches(IgnoreDirs.Trim(), @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value.Replace("\"","")).ToList();
+            _filterUtils = new FilterUtils(IgnoreFiles, IgnoreDirs);
+
+           
         }
     }
 }
