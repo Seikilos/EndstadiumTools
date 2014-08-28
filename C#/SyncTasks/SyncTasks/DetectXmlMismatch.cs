@@ -22,12 +22,7 @@ namespace SyncTasks
         public string BasePath { get; set; }
         [Required]
         public string XmlFile { get; set; }
-        [Required]
-        public string IgnoreFiles { get; set; }
-        [Required]
-        public string IgnoreDirs { get; set; }
 
-        private FilterUtils _filter;
 
         public override bool Execute()
         {
@@ -79,10 +74,9 @@ namespace SyncTasks
 
             foreach (var directory in Directory.GetDirectories(path))
             {
-                if (_filter.MatchesFilter(directory+@"\") == false)
-                {
-                    list.AddRange(_getFilesFiltered(directory));
-                }
+
+                list.AddRange(_getFilesFiltered(directory));
+
             }
 
             return list;
@@ -121,7 +115,6 @@ namespace SyncTasks
                 throw new FileNotFoundException("BasePath file not found", BasePath);
             }
 
-            _filter = new FilterUtils(IgnoreFiles, IgnoreDirs);
         }
 
 

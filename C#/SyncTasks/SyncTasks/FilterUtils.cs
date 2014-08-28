@@ -42,7 +42,7 @@ namespace SyncTasks
                 var df = Regex.Matches(DirFilter.Trim(), @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value.Replace("\"", "")).ToList();
                 foreach (var str in df)
                 {
-                    _dirFilter.Add(new Regex(string.Format("\\\\{0}\\\\", _sanitizeInput(str)), RegexOptions.Compiled | RegexOptions.IgnoreCase));
+                    _dirFilter.Add(new Regex(string.Format("(\\\\{0}\\\\)|(^{0}\\\\)", _sanitizeInput(str)), RegexOptions.Compiled | RegexOptions.IgnoreCase));
                 }
             }
 
@@ -55,7 +55,7 @@ namespace SyncTasks
         /// <returns></returns>
         private string _sanitizeInput(string str)
         {
-            return str.Replace(".", "\\.").Replace("$","\\$").Replace("*", ".*");
+            return str.Replace("\\", "\\\\").Replace(".", "\\.").Replace("$", "\\$").Replace("*", ".*");
         }
 
         public bool MatchesFilter(string path)

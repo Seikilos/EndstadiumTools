@@ -17,7 +17,7 @@ namespace SyncTasksTests
         public void Setup()
         {
             _filter = new FilterUtils("*.ilk *.idb *.obj *.pch *.pdb *.tlb *.vspscc *.vssscc *.ncb *.opensdf *.sdf *.cachefile *.dmp *.exp *.pyc fullfile.txt f.txt*",
-                "ipch \"System Volume Information\" $RECYCLE.BIN Mp3 Fotos temp *wildcard");
+                "ipch \"System Volume Information\" $RECYCLE.BIN Mp3 Fotos temp *wildcard e:\\mp3");
         }
 
         [Test]
@@ -66,6 +66,10 @@ namespace SyncTasksTests
 
             Assert.That(_filter.MatchesFilter(@"d:\prefix wildcard\"), Is.True);
             Assert.That(_filter.MatchesFilter(@"d:\prefix Wildcard\"), Is.True); // Case
+
+            Assert.That(_filter.MatchesFilter(@"$RECYCLE.BIN\S-1-5-21-1571656090-3314913039-3977377712-1000\$I0IETS4.mp3"), Is.True); 
+            Assert.That(_filter.MatchesFilter(@"c:\$RECYCLE.BIN\S-1-5-21-1571656090-3314913039-3977377712-1000\$I0IETS4.mp3"), Is.True); 
+            Assert.That(_filter.MatchesFilter(@"\not this $RECYCLE.BIN\S-1-5-21-1571656090-3314913039-3977377712-1000\$I0IETS4.mp3"), Is.False); 
 
         }
     }
