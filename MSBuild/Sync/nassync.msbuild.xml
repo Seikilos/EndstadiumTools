@@ -12,15 +12,21 @@
     </PropertyGroup>
     
     <UsingTask TaskName="SyncTasks.FilterFcivXml" AssemblyFile="SyncTasks.dll"/>
+    <UsingTask TaskName="SyncTasks.DetectXmlMismatch" AssemblyFile="SyncTasks.dll"/>
   
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <!-- Main Target to sync files to a remote destination like a nas -->
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <Target Name='SyncToDestination' DependsOnTargets="EnsureFiles" >
-
+ 
+ 
+        <Message Text="Sync from destination from '$(source)' to '$(destination)'" />
+    
         <Message Text="Sync to destination from '$(source)' to '$(destination)'" />
     
         <CallTarget Targets="Robocopy" />
+        
+        <!-- Disabled. No hashing used
         
         <CallTarget Targets="CreateSourceHash" />
         <CallTarget Targets="MoveSourceHashToDestination" />
@@ -30,6 +36,7 @@
         
         
         <CallTarget Targets="VerifyHash" />
+        -->
         
     </Target>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
@@ -43,9 +50,9 @@
     -->
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <Target Name='SyncFromDestination' DependsOnTargets="EnsureFiles" >
-    
-        <Message Text="Sync from destination from '$(source)' to '$(destination)'" />
-        
+ 
+        <!-- TODO: Verify syncing back from destination should be used at all -->
+ 
         <!-- 
             Check integrity first, while this might increase execution time by a large factor, this is important
             to ensure the remote data has no modification whatsoever.
@@ -106,7 +113,7 @@
         <Message Text="Invoking Robocopy" />
 
         <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) $(AdditionalIgnoreFiles) /XD $(IgnoreDirs) $(AdditionalIgnoreDirs)' IgnoreExitCode="true">
-        <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
+            <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
         </Exec>
 
         <Message Text="Robocopy exited with $(CommandExitCode)" />
@@ -128,11 +135,22 @@
         
         <!-- Use @(CopiedFiles->Count()) -->
   
+        <!-- Note: Filtering explicit directory e.g. d:\dir does not work as the base path omitted entries in XML do not match full paths -->
+
         <FilterFcivXml IgnoreFiles="$(IgnoreFiles) $(AdditionalIgnoreFiles)" IgnoreDirs="$(IgnoreDirs) $(AdditionalIgnoreDirs)" XmlFile="$(HashFile)"> 
             <Output TaskParameter="FilesInXml" ItemName="FilesInXml"/>
         </FilterFcivXml>
 
-        <Error Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'" Text="Copied files (@(CopiedFiles->Count())) != file count in xml (@(FilesInXml))." /> 
+        
+        <Warning Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'" Text="Copied files (@(CopiedFiles->Count())) != file count in xml (@(FilesInXml))." /> 
+ 
+
+        <!-- If file mismatch generate list -->
+        <DetectXmlMismatch Condition="'@(CopiedFiles->Count())'!='@(FilesInXml)'"
+            Path="$(destination)" 
+            XmlFile="$(HashFile)" 
+            BasePath="$(destination)"
+        />
     </Target>
   
   
