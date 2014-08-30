@@ -51,23 +51,22 @@
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <Target Name='SyncFromDestination' DependsOnTargets="EnsureFiles" >
  
-        <!-- TODO: Verify syncing back from destination should be used at all -->
- 
+      
         <!-- 
             Check integrity first, while this might increase execution time by a large factor, this is important
             to ensure the remote data has no modification whatsoever.
         -->
-        <CallTarget Targets="SetHashPathHelperToSource" />
+        <!--  <CallTarget Targets="SetHashPathHelperToSource" /> -->
         <!-- To prevent caching verify hash, use msbuild task, since HashPath is not available in here, redirect it to a sub target -->
-        <CallTarget Targets="InvokeVerifyHash" />
+        <!-- <CallTarget Targets="InvokeVerifyHash" /> -->
     
        
         
         <!-- this copies the hash db file too! -->
         <CallTarget Targets="Robocopy" />
         
-        <CallTarget Targets="SetHashPathHelperToDestination" />
-        <CallTarget Targets="VerifyHash" />
+        <!-- <CallTarget Targets="SetHashPathHelperToDestination" />
+        <CallTarget Targets="VerifyHash" /> -->
     
     </Target>
     
