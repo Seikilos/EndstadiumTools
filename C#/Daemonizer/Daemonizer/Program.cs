@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using Daemonizer.Properties;
 
@@ -23,7 +24,7 @@ namespace Daemonizer
             {
                 MessageBox.Show(
                     "Daemonzier.exe is a tool allowing to run processes in daemon mode, monitor process and write error log on failure while notifying the user.\n" +
-                    "Amount of args given: "+(args.Count-1)+Environment.NewLine +
+                    "Amount of args given: " + (args.Count - 1) + Environment.NewLine +
                     "Args: daemonizer.exe <path to executable> <arguments> <directory for log files> <write_always_log>", Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Environment.Exit(1);
             }
@@ -33,7 +34,7 @@ namespace Daemonizer
                 var exePath = args[1];
                 var passedArguments = args[2];
                 var logLocation = args[3];
-                var writeAlways = args.Count> 4 && bool.Parse(args[4]);
+                var writeAlways = args.Count > 4 && bool.Parse(args[4]);
 
                 if (File.Exists(exePath) == false)
                 {
@@ -42,38 +43,91 @@ namespace Daemonizer
 
                 if (Directory.Exists(logLocation) == false)
                 {
-                    throw new DirectoryNotFoundException("Directory not found: "+logLocation);
+                    throw new DirectoryNotFoundException("Directory not found: " + logLocation);
                 }
 
-                var pi = new ProcessStartInfo
-                    {
-                        FileName = exePath, 
-                        Arguments = passedArguments,
-                        CreateNoWindow = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false
-                    };
-                var p = Process.Start(pi);
-                p.WaitForExit();
 
                 var filename = string.Format("{0}_{1}.txt", Path.GetFileName(exePath), DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss"));
                 var fullPath = Path.Combine(logLocation, filename);
-                var header = string.Format("Executed: {0} with {1}", exePath, passedArguments);
 
-                if (p.ExitCode != 0)
+                using (var p = new Process())
                 {
-                    // Write std io to log location
-                    File.WriteAllText(fullPath, header + Environment.NewLine + p.StandardOutput.ReadToEnd());
+                    p.StartInfo = new ProcessStartInfo
+                        {
+                            FileName = exePath,
+                            Arguments = passedArguments,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false
+                        };
 
-                    throw new Exception(string.Format("Execution of {0} failed with exit code {1}. See log file '{2}' for more information.", exePath, p.ExitCode, fullPath));
-                }
-
-                if (writeAlways)
-                {
-                    File.WriteAllText(fullPath, header + Environment.NewLine + p.StandardOutput.ReadToEnd());
-                }
+                    // Use async read from standard output to prevent puffer overflow and dead lock
+                    // create buffer file and dump process return
                 
+                    using (var outputWaitHandle = new AutoResetEvent(false))
+                    using (var errorWaitHandle = new AutoResetEvent(false))
+                    using (var stream = new StreamWriter(fullPath, false)) // use default buffer size
+                    {
+                        stream.WriteLine("Executed: {0} with {1}", exePath, passedArguments);
+
+
+                        // Register notifiers
+                        p.OutputDataReceived += (sender, e) =>
+                            {
+                                if (e.Data == null)
+                                {
+                                    outputWaitHandle.Set();
+                                }
+                                else
+                                {
+                                    stream.WriteLine(e.Data);
+                                }
+                            };
+                        p.ErrorDataReceived += (sender, e) =>
+                            {
+                                if (e.Data == null)
+                                {
+                                    errorWaitHandle.Set();
+                                }
+                                else
+                                {
+                                    stream.WriteLine("Error: {0}",e.Data);
+                                }
+                            };
+
+
+
+                        p.Start();
+
+                        //p.WaitForExit(10000);
+
+
+                        p.BeginOutputReadLine();
+                        p.BeginErrorReadLine();
+
+
+                        // This might dead lock forever. Probably add timeout, but unsure what size
+                        p.WaitForExit();
+                        outputWaitHandle.WaitOne();
+                        errorWaitHandle.WaitOne();
+
+
+                        if (p.ExitCode != 0)
+                        {
+                            // Write std io to log location
+                            throw new Exception(string.Format("Execution of {0} failed with exit code {1}. See log file '{2}' for more information.", exePath, p.ExitCode, fullPath));
+                        }
+
+
+                    }
+                }
+
+                if (writeAlways == false)
+                {
+                    // Delete the buffered file
+                    File.Delete(fullPath);
+                }
 
             }
             catch (Exception e)
