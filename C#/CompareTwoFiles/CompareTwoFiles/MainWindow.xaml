@@ -1,0 +1,27 @@
+﻿<Window x:Class="CompareTwoFiles.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:compareTwoFiles="clr-namespace:CompareTwoFiles"
+        Title="Two files hash comparer" Height="300" Width="750" Icon="pack://application:,,,/Resources/icon.png" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <StackPanel Margin="5">
+        <Label FontSize="18" Margin="0,0,0,10">Compares md5 hashes of two files. (Supports Drag&amp;Drop)</Label>
+        <Grid Height="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+
+            <compareTwoFiles:HashFilePickerControl Margin="5" x:Name="LeftControl"  HashProviderGetHash="HashFilePickerControl_OnHashProviderGetHash" Grid.Column="0"></compareTwoFiles:HashFilePickerControl>
+            <compareTwoFiles:HashFilePickerControl Margin="5" x:Name="RightControl" HashProviderGetHash="HashFilePickerControl_OnHashProviderGetHash" Grid.Column="1"></compareTwoFiles:HashFilePickerControl>
+
+        </Grid>
+
+        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+            <Label VerticalAlignment="Center">Hash is equal:</Label>
+            <Label FontSize="20" Content="{Binding Equal}"></Label>
+        </StackPanel>
+       <!-- <TextBox IsReadOnly="True">(no value)</TextBox> -->
+
+
+    </StackPanel>
+</Window>
