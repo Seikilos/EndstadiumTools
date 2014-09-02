@@ -111,7 +111,8 @@
     <Target Name="Robocopy">
         <Message Text="Invoking Robocopy" />
 
-        <Exec Command='robocopy /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) $(AdditionalIgnoreFiles) /XD $(IgnoreDirs) $(AdditionalIgnoreDirs)' IgnoreExitCode="true">
+        <!-- Locked files should not block forever but only for short period of time -->
+        <Exec Command='robocopy /R:2 /W:30 /MIR /FFT "$(source)" "$(destination)" /XF $(IgnoreFiles) $(AdditionalIgnoreFiles) /XD $(IgnoreDirs) $(AdditionalIgnoreDirs)' IgnoreExitCode="true">
             <Output PropertyName="CommandExitCode" TaskParameter="ExitCode"/>
         </Exec>
 
