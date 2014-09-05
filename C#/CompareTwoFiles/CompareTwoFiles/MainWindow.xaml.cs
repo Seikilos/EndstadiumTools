@@ -101,7 +101,7 @@ namespace CompareTwoFiles
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    Arguments = string.Format("-add {0} -md5 ", arg)
+                    Arguments = string.Format("-add \"{0}\" -md5 ", arg)
                 };
             var res = Process.Start(pi);
 
