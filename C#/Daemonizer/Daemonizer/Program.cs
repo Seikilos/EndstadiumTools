@@ -82,16 +82,18 @@ namespace Daemonizer
 
                 importantProcess = Process.GetProcessesByName( "firefox" ).FirstOrDefault();
 
-                // Find the most parent process of firefox
-                Process parent = importantProcess.Parent();
-                while ( parent.ProcessName == "firefox")
-                {
-                    importantProcess = parent;
-                    parent = importantProcess.Parent();
-                }
-
                 if ( importantProcess != null )
                 {
+
+                    // Find the most parent process of firefox
+                    Process parent = importantProcess.Parent();
+                    while ( parent.ProcessName == "firefox")
+                    {
+                        importantProcess = parent;
+                        parent = importantProcess.Parent();
+                    }
+
+                
                     modulePath = importantProcess.MainModule.FileName;
                     dlgResult = MessageBox.Show( null,
                         $"Found {importantProcess.ProcessName}, which may prevent backup to properly finish. Should it be closed and reopened automatically later?" +
