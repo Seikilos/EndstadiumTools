@@ -30,11 +30,25 @@ $workItems | ForEach-Object {
 
   Write-Output("Detected {0} meaningful changes" -f $changeList.Length )
 
-  $witStates += @{id= $_.id; states=$changeList}
+  $witStates += @{id= $_.id; states=$changeList; totalChanges=$revisionJson.count}
 
 }
 
+Write-Output("Creating duration table for {0} stories" -f $witStates.Count)
 
+$durationTable = @()
+
+$witStates | ForEach-Object {
+
+  if ( $_.states.Length -le 1) 
+  {
+    $durationTable += "___"
+    return # not enough states
+  }
+
+  $durationTable += $_.id
+
+}
 
 exit 1
 
