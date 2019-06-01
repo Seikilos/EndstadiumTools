@@ -65,18 +65,3 @@ $durationTable | ForEach-Object {
 }
 
 $output | Out-File -FilePath $destFile
-exit 1
-
-# Request all iterations
-
-#Print (Invoke-WebRequest -Uri $urlIterations -ContentType "application/json"  -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}  )
-
-
-$r = Request "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'User Story' AND [State] <> 'Removed' order by [System.CreatedDate] desc"
-
-# Group by iteration, order by iteration
-#$r = Request "Select [System.Id], [System.Title], [System.State] From WorkItems Where [System.WorkItemType] = 'User Story' AND [System.TeamProject] = 'Lanos' AND [State] <> 'Closed' AND [State] <> 'Removed' order by [System.IterationPath] asc"
-
-
-
-Print $r.Content
