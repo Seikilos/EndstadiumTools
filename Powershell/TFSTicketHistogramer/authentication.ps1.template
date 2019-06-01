@@ -1,0 +1,12 @@
+# Rename this to .ps1 file
+# Fill out the necessary variables
+
+$apiVersion = "4.1"
+
+$url = "<YOUR_TFS_SERVER>/_apis/wit/wiql"
+
+$user = "<VALID_USER>"
+$token ="<TOKEN>" # see https://<YOUR_TFS_SERVER>/_usersSettings/tokens
+
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $user,$token)))
+
