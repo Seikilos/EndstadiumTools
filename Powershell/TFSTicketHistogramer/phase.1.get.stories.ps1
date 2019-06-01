@@ -15,6 +15,8 @@ $workItems = $rJson.workItems
 
 Write-Output ("Found {0} work items" -f $workItems.Count)
 
+$witStates = @()
+
 $workItems | ForEach-Object {
 
   $revisionsUrl = ($_.url +"/revisions")
@@ -25,6 +27,11 @@ $workItems | ForEach-Object {
   Write-Output("Found {0} state changes" -f $revisionJson.count)
 
   $changeList = Get-State-Changes $revisionJson
+
+  Write-Output("Detected {0} meaningful changes" -f $changeList.Length )
+
+  $witStates += @{id= $_.id; states=$changeList}
+
 }
 
 

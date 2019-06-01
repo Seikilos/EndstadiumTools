@@ -38,11 +38,28 @@ function Print {
     Write-Output $req | ConvertFrom-Json | ConvertTo-Json
 }
 
-function Get-State-Changes{
+function Get-State-Changes {
 
     param([object] $data)
 
-   echo $data
+    $changes = @()
 
+    $lastState = $null
+
+    $data.value | ForEach-Object {
+
+        $currentState = $_.fields."System.State"
+        $currentDate = $_.fields."System.ChangedDate"
+        if( $lastState -ne $currentState) {
+
+            $lastState = $currentState
+
+            $datetime = [datetime]::Parse($currentDate)
+            $changes += @{state=$currentState; date=$datetime}
+        }
+
+    }
+
+    return $changes
 
 }
