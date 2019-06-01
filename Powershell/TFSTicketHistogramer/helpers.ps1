@@ -63,3 +63,24 @@ function Get-State-Changes {
     return $changes
 
 }
+
+function Calc-Durations {
+    param([object] $data)
+
+
+    $durations = @()
+
+    for( $i = 0; $i -lt $data.states.Count-1; ++$i)
+    {
+        $currentState = $data.states[$i]
+        $nextState = $data.states[$i+1]
+
+        $duration = $nextState.date - $currentState.date
+
+        $durations += @{state=$currentState.state; duration=$duration}
+    }
+
+    $durations += @{state=$data.states[$data.states.Length-1].state; duration="still in"}
+
+    return $durations
+}

@@ -1,5 +1,5 @@
 
-. .\authentication.ps1
+. .\variables.ps1
 
 . .\helpers.ps1
 
@@ -42,14 +42,29 @@ $witStates | ForEach-Object {
 
   if ( $_.states.Length -le 1) 
   {
-    $durationTable += "___"
-    return # not enough states
+    return # not enough states, skip
   }
 
-  $durationTable += $_.id
+  $durationsOfStates = @(Calc-Durations $_)
+
+  $durationTable += @{id=$_.id; totalChanges=$_.totalChanges; durations=$durationsOfStates}
 
 }
 
+Write-Output("Dumping duration table to")
+
+$output = "Id  | Total Changes | States`r`n"
+
+$durationTable | ForEach-Object {
+  $states = ""
+  $_.durations | ForEach-Object {
+    $states += ("{0}: {1}, " -f $_.state, $_.duration)
+  }
+
+  $output += ("{0,3} | {1,-13} | {2}`r`n" -f $_.id, $_.totalChanges, $states)
+}
+
+$output | Out-File -FilePath $destFile
 exit 1
 
 # Request all iterations
