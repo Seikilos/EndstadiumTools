@@ -97,7 +97,7 @@ namespace MSBuildRunnerGUI.Data
         private void CheckCommandLine()
         {
 
-            ValidMsCommandLine = MsBuildCommandLine.Contains("%msbuild%");
+            ValidMsCommandLine = MsBuildCommandLine.Contains("%file%");
         }
 
         private void CheckBuildPath()

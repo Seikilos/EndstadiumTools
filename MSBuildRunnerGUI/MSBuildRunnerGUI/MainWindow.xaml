@@ -7,6 +7,7 @@
     xmlns:data="clr-namespace:MSBuildRunnerGUI.Data"
     xmlns:local="clr-namespace:MSBuildRunnerGUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Name="TheWindow"
     Title="MainWindow"
     Width="800"
     Height="450"
@@ -21,6 +22,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToSegoeGlyphConverter x:Key="BoolToSegoeGlyph" />
+        <converters:BuildResultToColorConverter x:Key="BuildResultToColorConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -68,7 +70,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     HorizontalAlignment="Right">
-                    Commandline to execute. Use %msbuild% as template
+                    Commandline to execute
                 </Label>
 
                 <TextBox
@@ -76,7 +78,8 @@
                     Grid.Column="1"
                     HorizontalAlignment="Stretch"
                     VerticalContentAlignment="Center"
-                    Text="{Binding Settings.MsBuildPath, Delay=500, UpdateSourceTrigger=PropertyChanged}" />
+                    Text="{Binding Settings.MsBuildPath, Delay=500, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="Use %msbuild% and %file%" />
 
                 <TextBox
                     Grid.Row="1"
@@ -133,6 +136,8 @@
                             Margin="0,0,3,0"
                             Background="Transparent"
                             BorderThickness="0"
+                            Command="{Binding Path=DataContext.RunBuildForDirectoryCommand, ElementName=TheWindow}"
+                            CommandParameter="{Binding}"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Build all children">
                             &#xE713;
@@ -140,7 +145,11 @@
                         <ListView BorderThickness="0" ItemsSource="{Binding Projects}">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Margin="0,0,3,0">
+                                    <Button
+                                        Margin="0,0,3,0"
+                                        Background="{Binding BuildResult, Converter={StaticResource BuildResultToColorConverter}}"
+                                        Command="{Binding Path=DataContext.RunBuildForProjectCommand, ElementName=TheWindow}"
+                                        CommandParameter="{Binding}">
                                         <StackPanel Orientation="Horizontal">
                                             <Label Content="{Binding Name}" />
                                             <TextBlock VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets">&#xE74A;</TextBlock>

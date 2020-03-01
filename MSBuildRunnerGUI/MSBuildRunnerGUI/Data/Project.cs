@@ -22,16 +22,42 @@ namespace MSBuildRunnerGUI.Data
         public int TotalDependencies { get; private set; }
         public int DependenciesOnThisLevel { get; private set; }
 
+        // ReSharper disable once NotAccessedField.Local
         private Task _scanTask;
+        private BuildResultEnum _buildResult;
+
+        public enum BuildResultEnum
+        {
+            Unknown,
+            Failed,
+            Successful
+        }
+
+        public BuildResultEnum BuildResult
+        {
+            get => _buildResult;
+            set
+            {
+                if (value == _buildResult) return;
+                _buildResult = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string FullPath
+        {
+            get { return _fullPath; }
+        }
 
         public Project(string fullPath)
         {
             _fullPath = fullPath;
+            BuildResult = BuildResultEnum.Unknown;
 
-            _scanTask = Task.Run(scanProjectFile);
+            _scanTask = Task.Run(ScanProjectFile);
         }
 
-        private void scanProjectFile()
+        private void ScanProjectFile()
         {
             if (File.Exists(_fullPath) == false)
             {

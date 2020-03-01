@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MSBuildRunnerGUI.Annotations;
 using MSBuildRunnerGUI.Data;
+using MSBuildRunnerGUI.Logic;
 using Prism.Commands;
 
 namespace MSBuildRunnerGUI
@@ -45,7 +46,7 @@ namespace MSBuildRunnerGUI
             }
         }
 
-        private HashSet<string> directoryBlackList = new HashSet<string>(new []{".git", ".vs"});
+        private readonly HashSet<string> directoryBlackList = new HashSet<string>(new []{".git", ".vs"});
 
         public ObservableCollection<DirectoryNode> RootNodes { get; protected set; }
 
@@ -53,6 +54,9 @@ namespace MSBuildRunnerGUI
         public DelegateCommand ToggleSettingsCommand { get; }
 
         public DelegateCommand LoadProjectsCommand { get; }
+
+        public DelegateCommand<DirectoryNode> RunBuildForDirectoryCommand { get; }
+        public DelegateCommand<Project> RunBuildForProjectCommand { get; }
 
         public MainWindowViewModel()
         {
@@ -63,6 +67,33 @@ namespace MSBuildRunnerGUI
             LoadProjectsCommand = new DelegateCommand(LoadProjects, CanLoadProjects);
             PathToDirectory = Properties.Settings.Default.PathToDirectory;
             RootNodes = new ObservableCollection<DirectoryNode>();
+
+            RunBuildForDirectoryCommand = new DelegateCommand<DirectoryNode>(RunBuildForDirectory);
+            RunBuildForProjectCommand = new DelegateCommand<Project>(RunBuildForProject);
+
+        }
+
+        private void RunBuildForProject(Project project)
+        {
+
+            var runner = new MsBuildRunner(Settings.MsBuildPath, Settings.MsBuildCommandLine);
+
+            var exitCode = runner.RunMsBuild(project.FullPath);
+
+            if (exitCode == 0)
+            {
+                project.BuildResult = Project.BuildResultEnum.Successful;
+            }
+            else
+            {
+                project.BuildResult = Project.BuildResultEnum.Failed;
+            }
+
+        }
+
+        private void RunBuildForDirectory(DirectoryNode obj)
+        {
+            
 
         }
 

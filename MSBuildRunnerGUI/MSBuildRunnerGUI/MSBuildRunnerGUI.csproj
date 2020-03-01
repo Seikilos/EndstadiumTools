@@ -56,6 +56,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToSegoeGlyphConverter.cs" />
+    <Compile Include="Converters\BuildResultToColorConverter.cs" />
     <Compile Include="Data\Project.cs" />
     <Compile Include="MainWindowViewModelDesignerOnly.cs" />
     <Compile Include="Data\DirectoryNode.cs" />
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainWindowViewModel.cs" />
+    <Compile Include="Logic\MsBuildRunner.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
