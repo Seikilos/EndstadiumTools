@@ -4,12 +4,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:MSBuildRunnerGUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:data="clr-namespace:MSBuildRunnerGUI.Data"
     xmlns:local="clr-namespace:MSBuildRunnerGUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="MainWindow"
     Width="800"
     Height="450"
-    d:DataContext="{d:DesignInstance {x:Type local:MainWindowViewModel},
+    d:DataContext="{d:DesignInstance {x:Type local:MainWindowViewModelDesignerOnly},
                                      IsDesignTimeCreatable=True}"
     mc:Ignorable="d">
 
@@ -102,27 +103,93 @@
             </Grid>
         </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal">
-            <Label>Directory</Label>
-            <TextBox VerticalContentAlignment="Center">Path to directory</TextBox>
-            <Button>Load</Button>
-        </StackPanel>
+        <DockPanel Grid.Row="2" Margin="5">
+            <Label DockPanel.Dock="Left">Directory</Label>
+            <Button
+                Padding="10,0"
+                Command="{Binding LoadProjectsCommand}"
+                DockPanel.Dock="Right">
+                Load
+            </Button>
+            <TextBox
+                HorizontalAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                Text="{Binding PathToDirectory, Delay=500, UpdateSourceTrigger=PropertyChanged}" />
 
-        <TreeView Grid.Row="3">
-            <TreeViewItem Header="Level 1" IsExpanded="True">
-                <TreeViewItem Header="Level 2.1" />
-                <TreeViewItem Header="Level 2.2" IsExpanded="True">
-                    <TreeViewItem Header="Level 3.1" />
-                    <TreeViewItem Header="Level 3.2" />
-                </TreeViewItem>
-                <TreeViewItem>
-                    <TreeViewItem.Template>
-                        <ControlTemplate>
-                            <Button>FGooo</Button>
-                        </ControlTemplate>
-                    </TreeViewItem.Template>
-                </TreeViewItem>
-            </TreeViewItem>
+        </DockPanel>
+
+        <TreeView
+            Grid.Row="3"
+            Margin="5,0,5,5"
+            ItemsSource="{Binding RootNodes}">
+
+
+
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type data:DirectoryNode}" ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <Label VerticalAlignment="Center" Content="{Binding Name}" />
+                        <Button
+                            Margin="0,0,3,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTip="Build all children">
+                            &#xE713;
+                        </Button>
+                        <ListView BorderThickness="0" ItemsSource="{Binding Projects}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="0,0,3,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="{Binding Name}" />
+                                            <TextBlock VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets">&#xE74A;</TextBlock>
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding TotalDependencies, StringFormat=({0})}" />
+                                            <TextBlock
+                                                Margin="4,0,1,0"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe MDL2 Assets">
+                                                &#xE72A;
+                                            </TextBlock>
+                                            <TextBlock
+                                                Margin="0,0,4,2"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding DependenciesOnThisLevel, StringFormat=({0})}" />
+                                        </StackPanel>
+
+                                    </Button>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="{x:Type ListBoxItem}">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                                <ContentPresenter />
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+
+                        </ListView>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+            </TreeView.ItemTemplate>
+
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="true" />
+                </Style>
+            </TreeView.ItemContainerStyle>
         </TreeView>
 
     </Grid>

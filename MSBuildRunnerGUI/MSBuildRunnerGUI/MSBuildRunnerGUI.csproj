@@ -56,7 +56,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToSegoeGlyphConverter.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Data\Project.cs" />
+    <Compile Include="MainWindowViewModelDesignerOnly.cs" />
+    <Compile Include="Data\DirectoryNode.cs" />
+    <Compile Include="Data\Settings.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

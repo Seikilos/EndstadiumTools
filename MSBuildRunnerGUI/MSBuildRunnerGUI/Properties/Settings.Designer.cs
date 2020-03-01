@@ -46,5 +46,17 @@ namespace MSBuildRunnerGUI.Properties {
                 this["MsBuildPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PathToDirectory {
+            get {
+                return ((string)(this["PathToDirectory"]));
+            }
+            set {
+                this["PathToDirectory"] = value;
+            }
+        }
     }
 }
