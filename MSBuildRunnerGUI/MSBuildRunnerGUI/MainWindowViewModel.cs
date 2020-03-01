@@ -45,6 +45,7 @@ namespace MSBuildRunnerGUI
             }
         }
 
+        private HashSet<string> directoryBlackList = new HashSet<string>(new []{".git", ".vs"});
 
         public ObservableCollection<DirectoryNode> RootNodes { get; protected set; }
 
@@ -61,6 +62,7 @@ namespace MSBuildRunnerGUI
             ToggleSettingsCommand = new DelegateCommand(() => SettingsActive = !SettingsActive);
             LoadProjectsCommand = new DelegateCommand(LoadProjects, CanLoadProjects);
             PathToDirectory = Properties.Settings.Default.PathToDirectory;
+            RootNodes = new ObservableCollection<DirectoryNode>();
 
         }
 
@@ -69,17 +71,71 @@ namespace MSBuildRunnerGUI
             return Directory.Exists(PathToDirectory);
         }
 
-        private void LoadProjects()
+        private async void LoadProjects()
         {
-            if (CanLoadProjects() == false)
+            try
             {
-                return;
+                if (CanLoadProjects() == false)
+                {
+                    return;
+                }
+
+                RootNodes.Clear();
+
+                var dRoot = new DirectoryNode(_getNameForDirectory(PathToDirectory));
+                RootNodes.Add(dRoot);
+                await _addDirectoriesRecursivelyAsync(dRoot, PathToDirectory);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
 
-            RootNodes = new ObservableCollection<DirectoryNode>();
-            RootNodes.Add(new DirectoryNode("Foo"));
 
             
+        }
+
+        private async Task _addDirectoriesRecursivelyAsync(DirectoryNode parent, string pathToDirectory)
+        {
+
+            foreach (var file in Directory.GetFiles(pathToDirectory, "*.*proj"))
+            {
+                parent.Projects.Add(new Project(file));
+            }
+
+
+            foreach (var childDirectory in Directory.GetDirectories(pathToDirectory))
+            {
+                if (SkipThisDirectory(childDirectory))
+                {
+                    continue;
+                }
+
+                var node = new DirectoryNode(_getNameForDirectory(childDirectory));
+
+                await _addDirectoriesRecursivelyAsync(node, childDirectory);
+
+                if (node.HasProjectsRecursively)
+                {
+                    parent.Children.Add(node);
+                }
+            }
+        }
+
+        private bool SkipThisDirectory(string pathToDirectory)
+        {
+            if (directoryBlackList.Contains(new DirectoryInfo(pathToDirectory).Name))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private string _getNameForDirectory(string directory)
+        {
+            return new DirectoryInfo(directory).Name;
         }
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)

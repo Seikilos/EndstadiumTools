@@ -19,11 +19,11 @@ namespace MSBuildRunnerGUI
         {
             RootNodes = new ObservableCollection<DirectoryNode>();
 
-            var pr1 = new Project("Some Project", 3, 1);
-            var pr2 = new Project("Other", 0, 0);
-            var pr3 = new Project("Non", 2, 1);
-            var pr4 = new Project("Def", 10, 3);
-            var pr5 = new Project("Go", 1, 1);
+            var pr1 = new Project("Some Project");
+            var pr2 = new Project("Other");
+            var pr3 = new Project("Non");
+            var pr4 = new Project("Def");
+            var pr5 = new Project("Go");
 
 
             RootNodes.Add(
