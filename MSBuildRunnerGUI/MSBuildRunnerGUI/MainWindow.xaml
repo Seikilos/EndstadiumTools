@@ -8,7 +8,7 @@
     xmlns:local="clr-namespace:MSBuildRunnerGUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Name="TheWindow"
-    Title="MainWindow"
+    Title="MSBuild Runner GUI"
     Width="800"
     Height="450"
     d:DataContext="{d:DesignInstance {x:Type local:MainWindowViewModelDesignerOnly},

@@ -76,9 +76,26 @@ namespace MSBuildRunnerGUI
         private void RunBuildForProject(Project project)
         {
 
+            _runBuildForProject(project, true);
+
+        }
+
+        private void RunBuildForDirectory(DirectoryNode node)
+        {
+            var listOfProjects = _gatherProjectsRecursively(node);
+
+            foreach (var project in listOfProjects)
+            {
+                _runBuildForProject(project, false);
+            }
+
+        }
+
+        private void _runBuildForProject(Project project, bool waitForWindow)
+        {
             var runner = new MsBuildRunner(Settings.MsBuildPath, Settings.MsBuildCommandLine);
 
-            var exitCode = runner.RunMsBuild(project.FullPath);
+            var exitCode = runner.RunMsBuild(project.FullPath, waitForWindow);
 
             if (exitCode == 0)
             {
@@ -88,13 +105,18 @@ namespace MSBuildRunnerGUI
             {
                 project.BuildResult = Project.BuildResultEnum.Failed;
             }
-
         }
 
-        private void RunBuildForDirectory(DirectoryNode obj)
+        private List<Project> _gatherProjectsRecursively(DirectoryNode node)
         {
-            
+            var projects = new List<Project>(node.Projects);
 
+            foreach (var directoryNode in node.Children)
+            {
+                projects.AddRange(_gatherProjectsRecursively(directoryNode));
+            }
+
+            return projects;
         }
 
         private bool CanLoadProjects()
