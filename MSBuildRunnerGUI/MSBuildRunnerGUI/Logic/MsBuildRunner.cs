@@ -26,8 +26,8 @@ namespace MSBuildRunnerGUI.Logic
         public int RunMsBuild(string pathToProjectFile, bool waitForWindow)
         {
             // Dump process call to batch file
-            var str = $"\"{ExePath}\" {MakeArguments(pathToProjectFile)}\r\n\r\n{(waitForWindow?"@pause":"")}";
             var file = Path.Combine(Path.GetTempPath(), "msbuildrunner.bat");
+            var str = $"@echo {file}\r\n\"{ExePath}\" {MakeArguments(pathToProjectFile)}\r\n\r\n{(waitForWindow?"@pause":"")}";
             File.WriteAllText(file, str);
 
             using (var process = new Process())
