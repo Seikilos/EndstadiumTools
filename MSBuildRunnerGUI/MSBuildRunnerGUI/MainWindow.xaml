@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:data="clr-namespace:MSBuildRunnerGUI.Data"
     xmlns:local="clr-namespace:MSBuildRunnerGUI"
+    xmlns:logic="clr-namespace:MSBuildRunnerGUI.Logic"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Name="TheWindow"
     Title="MSBuild Runner GUI"
@@ -23,6 +24,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToSegoeGlyphConverter x:Key="BoolToSegoeGlyph" />
         <converters:BuildResultToColorConverter x:Key="BuildResultToColorConverter" />
+        <converters:ToStringConverter x:Key="ToStringConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -78,15 +80,15 @@
                     Grid.Column="1"
                     HorizontalAlignment="Stretch"
                     VerticalContentAlignment="Center"
-                    Text="{Binding Settings.MsBuildPath, Delay=500, UpdateSourceTrigger=PropertyChanged}"
-                    ToolTip="Use %msbuild% and %file%" />
+                    Text="{Binding Settings.MsBuildPath, Delay=500, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBox
                     Grid.Row="1"
                     Grid.Column="1"
                     HorizontalAlignment="Stretch"
                     VerticalContentAlignment="Center"
-                    Text="{Binding Settings.MsBuildCommandLine, Delay=500, UpdateSourceTrigger=PropertyChanged}" />
+                    Text="{Binding Settings.MsBuildCommandLine, Delay=500, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="{Binding Source={x:Static logic:MsBuildRunner.SupportedMacros}, Converter={StaticResource ToStringConverter}}" />
 
                 <TextBlock
                     Grid.Row="0"

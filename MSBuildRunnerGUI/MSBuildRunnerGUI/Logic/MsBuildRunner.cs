@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -10,6 +11,14 @@ namespace MSBuildRunnerGUI.Logic
     {
         public string ExePath { get; private set; }
         public string CommandLine { get; private set; }
+
+        public const string FileMarker = "%file%";
+
+        public static Dictionary<string,string> SupportedMacros { get; } = new Dictionary<string, string>
+        {
+            {FileMarker, "The project file. Enclose it in quotes if whitespaces are possible." }
+        };
+
 
         public MsBuildRunner([NotNull] string exePath, [NotNull] string commandLine)
         {
@@ -45,7 +54,7 @@ namespace MSBuildRunnerGUI.Logic
 
         private string MakeArguments(string pathToProjectFile)
         {
-            return CommandLine.Replace("%file%", $"\"{pathToProjectFile}\"");
+            return CommandLine.Replace(FileMarker, $"\"{pathToProjectFile}\"");
         }
     }
 }
