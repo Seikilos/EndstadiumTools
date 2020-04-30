@@ -16,9 +16,6 @@
                                      IsDesignTimeCreatable=True}"
     mc:Ignorable="d">
 
-    <Window.DataContext>
-        <local:MainWindowViewModel />
-    </Window.DataContext>
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />

@@ -11,19 +11,21 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using MSBuildRunnerGUI.Annotations;
+using MSBuildRunnerGUI.Contracts;
 
 namespace MSBuildRunnerGUI.Data
 {
     public class Project : INotifyPropertyChanged
     {
-        private readonly string _fullPath;
-        public string Name => Path.GetFileName(_fullPath);
+        public string Name => Path.GetFileName(FullPath);
        
         public int TotalDependencies { get; private set; }
         public int DependenciesOnThisLevel { get; private set; }
 
+        public bool ScanCompleted => _scanTask.IsCompleted;
+
         // ReSharper disable once NotAccessedField.Local
-        private Task _scanTask;
+        private readonly Task _scanTask;
         private BuildResultEnum _buildResult;
 
         public enum BuildResultEnum
@@ -44,14 +46,14 @@ namespace MSBuildRunnerGUI.Data
             }
         }
 
-        public string FullPath
-        {
-            get { return _fullPath; }
-        }
+        public string FullPath { get; }
 
-        public Project(string fullPath)
+        private IFileIO _fileIO;
+
+        public Project(string fullPath, IFileIO fileIO)
         {
-            _fullPath = fullPath;
+            FullPath = fullPath;
+            _fileIO = fileIO;
             BuildResult = BuildResultEnum.Unknown;
 
             _scanTask = Task.Run(ScanProjectFile);
@@ -59,7 +61,7 @@ namespace MSBuildRunnerGUI.Data
 
         private void ScanProjectFile()
         {
-            if (File.Exists(_fullPath) == false)
+            if (_fileIO.Exists(FullPath) == false)
             {
                 TotalDependencies = -1;
                 return;
@@ -67,7 +69,7 @@ namespace MSBuildRunnerGUI.Data
 
             try
             {
-                var doc = XDocument.Load(_fullPath);
+                var doc = XDocument.Parse(_fileIO.ReadFile(FullPath));
 
                 // Ignore namespaces to be independent from old and new project types
                 var projectReferences = doc.XPathSelectElements("//*[contains(local-name(),'ProjectReference')]");

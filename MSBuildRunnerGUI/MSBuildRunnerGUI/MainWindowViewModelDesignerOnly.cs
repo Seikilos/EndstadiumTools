@@ -9,21 +9,22 @@ using System.Text;
 using System.Threading.Tasks;
 using MSBuildRunnerGUI.Annotations;
 using MSBuildRunnerGUI.Data;
+using MSBuildRunnerGUI.Logic;
 using Prism.Commands;
 
 namespace MSBuildRunnerGUI
 {
     public class MainWindowViewModelDesignerOnly : MainWindowViewModel
     {
-        public MainWindowViewModelDesignerOnly()
+        public MainWindowViewModelDesignerOnly() : base(new FileIO())
         {
             RootNodes = new ObservableCollection<DirectoryNode>();
-
-            var pr1 = new Project("Some Project");
-            var pr2 = new Project("Other");
-            var pr3 = new Project("Non");
-            var pr4 = new Project("Def");
-            var pr5 = new Project("Go");
+          
+            var pr1 = new Project("Some Project", _fileIO);
+            var pr2 = new Project("Other", _fileIO);
+            var pr3 = new Project("Non", _fileIO);
+            var pr4 = new Project("Def", _fileIO);
+            var pr5 = new Project("Go", _fileIO);
 
 
             RootNodes.Add(

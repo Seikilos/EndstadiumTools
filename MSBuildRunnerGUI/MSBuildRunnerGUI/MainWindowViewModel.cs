@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using MSBuildRunnerGUI.Annotations;
+using MSBuildRunnerGUI.Contracts;
 using MSBuildRunnerGUI.Data;
 using MSBuildRunnerGUI.Logic;
 using Prism.Commands;
@@ -30,6 +31,8 @@ namespace MSBuildRunnerGUI
 
         private bool _settingsActive;
         private string _pathToDirectory;
+
+        protected IFileIO _fileIO;
 
 
         public Settings Settings { get;  }
@@ -58,8 +61,9 @@ namespace MSBuildRunnerGUI
         public DelegateCommand<DirectoryNode> RunBuildForDirectoryCommand { get; }
         public DelegateCommand<Project> RunBuildForProjectCommand { get; }
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IFileIO fileIO)
         {
+            _fileIO = fileIO;
             PropertyChanged += MainWindowViewModel_PropertyChanged;
 
             Settings = new Settings();
@@ -154,7 +158,7 @@ namespace MSBuildRunnerGUI
 
             foreach (var file in Directory.GetFiles(pathToDirectory, "*.*proj"))
             {
-                parent.Projects.Add(new Project(file));
+                parent.Projects.Add(new Project(file, _fileIO));
             }
 
 

@@ -55,10 +55,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Contracts\IFileIO.cs" />
     <Compile Include="Converters\BoolToSegoeGlyphConverter.cs" />
     <Compile Include="Converters\BuildResultToColorConverter.cs" />
     <Compile Include="Converters\ToStringConverter.cs" />
     <Compile Include="Data\Project.cs" />
+    <Compile Include="Data\Token.cs" />
+    <Compile Include="Logic\FileIO.cs" />
+    <Compile Include="Logic\TokenParser.cs" />
     <Compile Include="MainWindowViewModelDesignerOnly.cs" />
     <Compile Include="Data\DirectoryNode.cs" />
     <Compile Include="Data\Settings.cs" />
