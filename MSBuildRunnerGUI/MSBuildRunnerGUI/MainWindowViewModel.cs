@@ -97,7 +97,7 @@ namespace MSBuildRunnerGUI
 
         private void _runBuildForProject(Project project, bool waitForWindow)
         {
-            var runner = new MsBuildRunner(Settings.MsBuildPath, Settings.MsBuildCommandLine);
+            var runner = new MsBuildRunner(_fileIO, Settings.MsBuildPath, Settings.MsBuildCommandLine);
 
             var exitCode = runner.RunMsBuild(project.FullPath, waitForWindow);
 

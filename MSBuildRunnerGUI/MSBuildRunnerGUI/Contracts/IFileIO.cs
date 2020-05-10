@@ -12,5 +12,9 @@ namespace MSBuildRunnerGUI.Contracts
         string ReadFile(string file);
 
         bool Exists(string path);
+
+        void WriteAllText(string file, string text);
+
+        int RunProcess(string file, string arguments = null);
     }
 }
