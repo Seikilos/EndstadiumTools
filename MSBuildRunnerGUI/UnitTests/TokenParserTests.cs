@@ -172,6 +172,7 @@ namespace UnitTests
             new List<object[]>
             {
                 new object[] {new []{ "/p:Platform=x64", "/p:Configuration=Release" } },
+                new object[] {new []{ "/p:Foo", "/p:Bar" } },
             };
 
 

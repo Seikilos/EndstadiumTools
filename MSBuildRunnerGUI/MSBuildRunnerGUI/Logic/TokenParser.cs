@@ -21,6 +21,12 @@ namespace MSBuildRunnerGUI.Logic
         /// </summary>
         private static char SubAssignment = '=';
 
+
+        /// <summary>
+        /// These items should not be grouped if only SubDelimiter and no SubAssignment was set
+        /// </summary>
+        private static string[] ForceNotGroupedNames = {"p", "property"};
+
         public static List<Token> Parse(string str)
         {
             if (str == null)
@@ -105,6 +111,14 @@ namespace MSBuildRunnerGUI.Logic
                 }
 
                 // something:foo, use only something then
+                // unless the first part is in the ForceNotGroupedNames list, then pick the entire string, usually for /p:A /p:B
+                var firstPart = trimmed.Substring(0, trimmed.IndexOf(SubDelimiter));
+                if (ForceNotGroupedNames.Any(s => s == firstPart))
+                {
+                    // Found special one, return full
+                    return trimmed;
+                }
+
                 return trimmed.Substring(0, trimmed.IndexOf(SubDelimiter));
             }
 
