@@ -9,13 +9,23 @@ namespace MSBuildRunnerGUI.Data
 {
     public class Token
     {
-        public string Value { get; set; }
+        public List<string> Values { get; set; }
+
+        public bool HasVariants
+        {
+            get { return Values.Count > 1; }
+        }
 
         public bool IsActive { get; set; }
 
-        public Token([NotNull] string value, bool isActive)
+        public Token(bool isActive, params string[] values)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            Values = new List<string>(values);
+            if (Values.Any() == false)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
             IsActive = isActive;
         }
     }
