@@ -16,6 +16,7 @@ namespace MSBuildRunnerGUI.Data
         private string _msBuildCommandLine;
         private bool _validMsBuildPath;
         private bool _validMsCommandLine;
+        private List<Token> _tokens;
 
         public string MsBuildPath
         {
@@ -64,7 +65,16 @@ namespace MSBuildRunnerGUI.Data
             }
         }
 
-        public List<Token> Tokens { get; set; }
+        public List<Token> Tokens
+        {
+            get => _tokens;
+            set
+            {
+                if (Equals(value, _tokens)) return;
+                _tokens = value;
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -38,6 +38,11 @@ namespace MSBuildRunnerGUI
                     new DirectoryNode("Also child",
                         new DirectoryNode("Deeper child") {Projects = new ObservableCollection<Project>{pr4, pr5}})));
 
+
+            Settings.MsBuildPath = "Path to some exe";
+            Settings.MsBuildCommandLine = "/p:Foo %file% -target:Clean /target:Build";
+            Settings.Tokens[1].IsActive = false;
+
         }
     }
 }

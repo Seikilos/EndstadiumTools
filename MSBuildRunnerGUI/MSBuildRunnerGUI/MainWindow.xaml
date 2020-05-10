@@ -22,6 +22,11 @@
         <converters:BoolToSegoeGlyphConverter x:Key="BoolToSegoeGlyph" />
         <converters:BuildResultToColorConverter x:Key="BuildResultToColorConverter" />
         <converters:ToStringConverter x:Key="ToStringConverter" />
+        <converters:BoolToBrushConverter
+            x:Key="BoolToOnOffBrush"
+            FalseBrush="White"
+            TrueBrush="GreenYellow" />
+
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -48,6 +53,7 @@
             Visibility="{Binding SettingsActive, Converter={StaticResource BoolToVis}}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition />
                     <RowDefinition />
                     <RowDefinition />
                 </Grid.RowDefinitions>
@@ -101,6 +107,73 @@
                     VerticalAlignment="Center"
                     FontFamily="Segoe MDL2 Assets"
                     Text="{Binding Settings.ValidMsCommandLine, Converter={StaticResource BoolToSegoeGlyph}}" />
+
+                <Label
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    HorizontalAlignment="Right">
+                    Tokens
+                </Label>
+
+                <ItemsControl
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    ItemsSource="{Binding Settings.Tokens}">
+
+                    <ItemsControl.Resources>
+                        <DataTemplate x:Key="SingleToken" DataType="{x:Type data:Token}">
+                            <Button
+                                Margin="0,0,5,0"
+                                Padding="5,1"
+                                Background="{Binding IsActive, Converter={StaticResource BoolToOnOffBrush}}">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5" />
+                                    </Style>
+                                </Button.Resources>
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock
+                                        Margin="0,0,5,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        Text="{Binding IsActive, Converter={StaticResource BoolToSegoeGlyph}}" />
+                                    <TextBlock Text="{Binding Values[0]}" />
+
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+
+                        <DataTemplate x:Key="GroupedToken" DataType="{x:Type data:Token}">
+                            <ComboBox ItemsSource="{Binding Values}" />
+                        </DataTemplate>
+
+                    </ItemsControl.Resources>
+
+                    <ItemsControl.ItemTemplate>
+
+                        <DataTemplate DataType="{x:Type data:Token}">
+                            <ContentControl Content="{Binding}">
+                                <ContentControl.Style>
+                                    <Style TargetType="{x:Type ContentControl}">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource SingleToken}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasVariants}" Value="true">
+                                                <Setter Property="ContentTemplate" Value="{StaticResource GroupedToken}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel VerticalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
 
             </Grid>
         </Border>

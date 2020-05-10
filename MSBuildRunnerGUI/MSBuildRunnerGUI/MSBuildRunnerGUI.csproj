@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Contracts\IFileIO.cs" />
     <Compile Include="Converters\BoolToSegoeGlyphConverter.cs" />
+    <Compile Include="Converters\BoolToBrushConverter.cs" />
     <Compile Include="Converters\BuildResultToColorConverter.cs" />
     <Compile Include="Converters\ToStringConverter.cs" />
     <Compile Include="Data\Project.cs" />
