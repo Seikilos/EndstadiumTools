@@ -1,7 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Documents;
 using MSBuildRunnerGUI.Annotations;
+using MSBuildRunnerGUI.Logic;
 
 namespace MSBuildRunnerGUI.Data
 {
@@ -31,9 +35,12 @@ namespace MSBuildRunnerGUI.Data
             {
                 if (value == _msBuildCommandLine) return;
                 _msBuildCommandLine = value;
+                UpdateTokens();
                 OnPropertyChanged();
             }
         }
+
+     
 
         public bool ValidMsBuildPath
         {
@@ -57,6 +64,8 @@ namespace MSBuildRunnerGUI.Data
             }
         }
 
+        public List<Token> Tokens { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -69,11 +78,11 @@ namespace MSBuildRunnerGUI.Data
         public Settings()
         {
             PropertyChanged += Settings_PropertyChanged;
-
+            Tokens = new List<Token>();
+           
             MsBuildCommandLine = Properties.Settings.Default.MsBuidlCommandLine;
             MsBuildPath = Properties.Settings.Default.MsBuildPath;
 
-       
         }
 
         private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -94,6 +103,22 @@ namespace MSBuildRunnerGUI.Data
             Properties.Settings.Default.Save();
         }
 
+        private void UpdateTokens()
+        {
+            var oldTokens = Tokens;
+            Tokens = TokenParser.Parse(MsBuildCommandLine);
+
+            // Apply old state
+            foreach (var token in Tokens)
+            {
+                var firstOld = oldTokens.FirstOrDefault(t => t.TokenKey == token.TokenKey);
+                if (firstOld != null)
+                {
+                    token.IsActive = firstOld.IsActive;
+                }
+            }
+
+        }
         private void CheckCommandLine()
         {
 

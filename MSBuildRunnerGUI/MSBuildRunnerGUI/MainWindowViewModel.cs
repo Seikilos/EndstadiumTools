@@ -66,6 +66,7 @@ namespace MSBuildRunnerGUI
             _fileIO = fileIO;
             PropertyChanged += MainWindowViewModel_PropertyChanged;
 
+            SettingsActive = true;
             Settings = new Settings();
             ToggleSettingsCommand = new DelegateCommand(() => SettingsActive = !SettingsActive);
             LoadProjectsCommand = new DelegateCommand(LoadProjects, CanLoadProjects);

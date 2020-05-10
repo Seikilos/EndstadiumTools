@@ -82,6 +82,7 @@ namespace MSBuildRunnerGUI.Logic
             foreach (var token in original)
             {
                 var tokenKey = GetTokenKey(token.Values[0]);
+                token.TokenKey = tokenKey;
 
                 if (dict.ContainsKey(tokenKey) == false)
                 {
