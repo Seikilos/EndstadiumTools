@@ -62,8 +62,12 @@ namespace MSBuildRunnerGUI.Logic
                 }
                 else
                 {
-                    list.Add(new Token(true, accum.ToString() ));
-                    accum.Clear();
+                    // Append only if something was accumulated
+                    if (accum.Length > 0)
+                    {
+                        list.Add(new Token(true, accum.ToString()));
+                        accum.Clear();
+                    }
                 }
             }
 

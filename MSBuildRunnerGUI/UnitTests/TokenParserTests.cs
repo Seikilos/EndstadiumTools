@@ -195,5 +195,21 @@ namespace UnitTests
 
             list.Count.Should().Be(lines.Length);
         }
+
+        [Fact]
+        public void Whitespaces_are_not_parsed()
+        {
+            // Arrange
+            var str = "a  b  ";
+
+            // Act
+            var list = TokenParser.Parse(str);
+
+            // Assert
+            list[0].Values[0].Should().Be("a");
+            list[1].Values[0].Should().Be("b");
+            
+            list.Count.Should().Be(2);
+        }
     }
 }
