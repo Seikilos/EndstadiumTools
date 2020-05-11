@@ -50,8 +50,20 @@ namespace MSBuildRunnerGUI
         }
 
         private readonly HashSet<string> directoryBlackList = new HashSet<string>(new []{".git", ".vs"});
+        private string _finalCommandLine;
 
         public ObservableCollection<DirectoryNode> RootNodes { get; protected set; }
+
+        public string FinalCommandLine
+        {
+            get => _finalCommandLine;
+            set
+            {
+                if (value == _finalCommandLine) return;
+                _finalCommandLine = value;
+                OnPropertyChanged();
+            }
+        }
 
 
         public DelegateCommand ToggleSettingsCommand { get; }
@@ -61,6 +73,7 @@ namespace MSBuildRunnerGUI
         public DelegateCommand<DirectoryNode> RunBuildForDirectoryCommand { get; }
         public DelegateCommand<Project> RunBuildForProjectCommand { get; }
 
+
         public MainWindowViewModel(IFileIO fileIO)
         {
             _fileIO = fileIO;
@@ -68,6 +81,9 @@ namespace MSBuildRunnerGUI
 
             SettingsActive = true;
             Settings = new Settings();
+            Settings.PropertyChanged += SettingsOnPropertyChanged;
+            CreateFinalCommandLine();
+
             ToggleSettingsCommand = new DelegateCommand(() => SettingsActive = !SettingsActive);
             LoadProjectsCommand = new DelegateCommand(LoadProjects, CanLoadProjects);
             PathToDirectory = Properties.Settings.Default.PathToDirectory;
@@ -75,6 +91,35 @@ namespace MSBuildRunnerGUI
 
             RunBuildForDirectoryCommand = new DelegateCommand<DirectoryNode>(RunBuildForDirectory);
             RunBuildForProjectCommand = new DelegateCommand<Project>(RunBuildForProject);
+
+           
+        }
+
+        private void SettingsOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Settings.MsBuildCommandLine) || e.PropertyName == nameof(Settings.Tokens))
+            {
+                CreateFinalCommandLine();
+            }
+
+        }
+
+        private void CreateFinalCommandLine()
+        {
+            var sb = new StringBuilder();
+
+            foreach (var token in Settings.Tokens)
+            {
+                if (token.IsActive == false)
+                {
+                    continue;
+                }
+
+                sb.Append(token.Values[token.SelectedElement]);
+                sb.Append(" ");
+            }
+
+            FinalCommandLine = sb.ToString().TrimEnd();
 
         }
 
@@ -98,7 +143,7 @@ namespace MSBuildRunnerGUI
 
         private void _runBuildForProject(Project project, bool waitForWindow)
         {
-            var runner = new MsBuildRunner(_fileIO, Settings.MsBuildPath, Settings.MsBuildCommandLine);
+            var runner = new MsBuildRunner(_fileIO, Settings.MsBuildPath, FinalCommandLine);
 
             var exitCode = runner.RunMsBuild(project.FullPath, waitForWindow);
 

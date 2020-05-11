@@ -61,6 +61,7 @@
                     <RowDefinition />
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -120,6 +121,7 @@
                     VerticalAlignment="Center">
                     Tokens
                 </Label>
+
 
                 <ItemsControl
                     Grid.Row="2"
@@ -208,6 +210,18 @@
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
 
+                <Label
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+                    Active commandline
+                </Label>
+
+                <Label
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Content="{Binding FinalCommandLine}" />
             </Grid>
         </Border>
 

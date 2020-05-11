@@ -116,7 +116,10 @@ namespace MSBuildRunnerGUI.Data
         private void UpdateTokens()
         {
             var oldTokens = Tokens;
+            oldTokens.ForEach(t => t.PropertyChanged -= TokenPropertyChanged);
+
             Tokens = TokenParser.Parse(MsBuildCommandLine);
+            Tokens.ForEach(t => t.PropertyChanged += TokenPropertyChanged);
 
             // Apply old state
             foreach (var token in Tokens)
@@ -138,6 +141,11 @@ namespace MSBuildRunnerGUI.Data
 
 
 
+        }
+
+        private void TokenPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(Tokens));
         }
 
         private void transferSelectedElement(Token newToken, Token oldToken)
