@@ -22,10 +22,15 @@
         <converters:BoolToSegoeGlyphConverter x:Key="BoolToSegoeGlyph" />
         <converters:BuildResultToColorConverter x:Key="BuildResultToColorConverter" />
         <converters:ToStringConverter x:Key="ToStringConverter" />
+
+        <SolidColorBrush x:Key="Active" Color="GreenYellow" />
+        <SolidColorBrush x:Key="NotActive" Color="White" />
+        <SolidColorBrush x:Key="TokenBorder" Color="DimGray" />
+
         <converters:BoolToBrushConverter
             x:Key="BoolToOnOffBrush"
-            FalseBrush="White"
-            TrueBrush="GreenYellow" />
+            FalseBrush="{StaticResource NotActive}"
+            TrueBrush="{StaticResource Active}" />
 
     </Window.Resources>
     <Grid>
@@ -111,13 +116,15 @@
                 <Label
                     Grid.Row="2"
                     Grid.Column="0"
-                    HorizontalAlignment="Right">
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
                     Tokens
                 </Label>
 
                 <ItemsControl
                     Grid.Row="2"
                     Grid.Column="1"
+                    Margin="0,5,0,0"
                     ItemsSource="{Binding Settings.Tokens}">
 
                     <ItemsControl.Resources>
@@ -125,7 +132,9 @@
                             <Button
                                 Margin="0,0,5,0"
                                 Padding="5,1"
-                                Background="{Binding IsActive, Converter={StaticResource BoolToOnOffBrush}}">
+                                Background="{Binding IsActive, Converter={StaticResource BoolToOnOffBrush}}"
+                                BorderBrush="{StaticResource TokenBorder}"
+                                Command="{Binding ToggleActiveState}">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="5" />
@@ -145,7 +154,31 @@
                         </DataTemplate>
 
                         <DataTemplate x:Key="GroupedToken" DataType="{x:Type data:Token}">
-                            <ComboBox ItemsSource="{Binding Values}" />
+                            <Border
+                                Margin="0,0,5,0"
+                                Padding="2"
+                                Background="{Binding IsActive, Converter={StaticResource BoolToOnOffBrush}}"
+                                BorderBrush="{StaticResource TokenBorder}"
+                                BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Margin="0,0,5,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Command="{Binding ToggleActiveState}"
+                                        Content="{Binding IsActive, Converter={StaticResource BoolToSegoeGlyph}}"
+                                        FontFamily="Segoe MDL2 Assets" />
+                                    <ComboBox ItemsSource="{Binding Values}" SelectedIndex="{Binding SelectedElement}" />
+                                </StackPanel>
+
+                                <Border.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5" />
+                                    </Style>
+                                </Border.Resources>
+
+                            </Border>
+
                         </DataTemplate>
 
                     </ItemsControl.Resources>

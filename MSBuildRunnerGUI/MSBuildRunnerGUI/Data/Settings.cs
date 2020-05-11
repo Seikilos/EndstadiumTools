@@ -121,14 +121,42 @@ namespace MSBuildRunnerGUI.Data
             // Apply old state
             foreach (var token in Tokens)
             {
+
                 var firstOld = oldTokens.FirstOrDefault(t => t.TokenKey == token.TokenKey);
-                if (firstOld != null)
+               
+                if( firstOld == null)
                 {
-                    token.IsActive = firstOld.IsActive;
+                    continue;
+                }
+
+
+                token.IsActive = firstOld.IsActive;
+
+                transferSelectedElement(token, firstOld);
+
+            }
+
+
+
+        }
+
+        private void transferSelectedElement(Token newToken, Token oldToken)
+        {
+            var oldSelectedElement = oldToken.Values[oldToken.SelectedElement];
+
+            for (var i = 0; i < newToken.Values.Count; ++i)
+            {
+                var foundToken = newToken.Values[i];
+                if (oldSelectedElement == foundToken)
+                {
+                    newToken.SelectedElement = i;
+                    return;
                 }
             }
 
+
         }
+
         private void CheckCommandLine()
         {
 

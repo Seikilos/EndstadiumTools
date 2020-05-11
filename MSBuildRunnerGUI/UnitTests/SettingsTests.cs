@@ -13,7 +13,7 @@ namespace UnitTests
     public class SettingsTests
     {
         [Fact]
-        public void Updating_Tokens_Migrates_previous_Tokens()
+        public void Updating_Tokens_Migrates_previous_Tokens_Active_State()
         {
             // Arrange
             var settings = new Settings();
@@ -27,6 +27,37 @@ namespace UnitTests
 
             // Assert
             settings.Tokens.First(t => t.TokenKey == originalKey).IsActive.Should().Be(!originalActiveState);
+        }
+
+        [Fact]
+        public void Updating_Tokens_Migrates_previous_Tokens_Selected_Value()
+        {
+            // Arrange
+            var settings = new Settings();
+            settings.MsBuildCommandLine = "/target:Build /target:Clean";
+            settings.Tokens[0].SelectedElement = 1;
+         
+            // Act
+          
+            settings.MsBuildCommandLine = "/target:Build /target:Clean /p:Foo";
+
+            // Assert
+            settings.Tokens[0].SelectedElement.Should().Be(1);
+        }
+
+        [Fact]
+        public void Updating_Tokens_Finds_Used_Element()
+        {
+            // Arrange
+            var settings = new Settings();
+            settings.MsBuildCommandLine = "/target:Build /target:Clean";
+            settings.Tokens[0].SelectedElement = 1;
+
+            // Act
+            settings.MsBuildCommandLine = "/target:Build  /target:AAA /target:Clean";
+
+            // Assert
+            settings.Tokens[0].SelectedElement.Should().Be(2);
         }
     }
 }
