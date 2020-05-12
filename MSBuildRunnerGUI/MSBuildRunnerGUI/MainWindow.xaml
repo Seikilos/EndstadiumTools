@@ -219,10 +219,12 @@
                     Active commandline
                 </Label>
 
-                <Label
+                <TextBlock
                     Grid.Row="3"
                     Grid.Column="1"
-                    Content="{Binding FinalCommandLine}" />
+                    VerticalAlignment="Center"
+                    Text="{Binding FinalCommandLine}"
+                    TextWrapping="Wrap" />
             </Grid>
         </Border>
 

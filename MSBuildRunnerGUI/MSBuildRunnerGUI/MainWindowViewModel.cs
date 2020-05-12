@@ -93,6 +93,7 @@ namespace MSBuildRunnerGUI
             SettingsActive = true;
             Settings = new Settings();
             LoadSettings(); // done before INPC registration to avoid redundant saves
+            CreateFinalCommandLine();
             Settings.PropertyChanged += SettingsOnPropertyChanged;
             
             RootNodes = new ObservableCollection<DirectoryNode>();

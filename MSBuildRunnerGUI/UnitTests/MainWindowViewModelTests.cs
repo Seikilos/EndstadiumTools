@@ -101,7 +101,7 @@ namespace UnitTests
             persistedSettings.MsBuildCommandLine = "cmd /t:line /t:bar";
             persistedSettings.MsBuildExePath = "exe path";
             persistedSettings.LastSetDirectory = "last path";
-            persistedSettings.ActiveStates = new List<bool>{false, false};
+            persistedSettings.ActiveStates = new List<bool>{false, true};
             persistedSettings.TokenPositions = new List<int>{0, 1};
             _userSettingsManagerMock.Setup(u => u.LoadFromLocation()).Returns(persistedSettings);
 
@@ -115,10 +115,11 @@ namespace UnitTests
             _sut.Settings.MsBuildCommandLine.Should().Be(persistedSettings.MsBuildCommandLine);
             _sut.Settings.MsBuildPath.Should().Be(persistedSettings.MsBuildExePath);
             _sut.Settings.Tokens[0].IsActive.Should().BeFalse();
-            _sut.Settings.Tokens[1].IsActive.Should().BeFalse();
+            _sut.Settings.Tokens[1].IsActive.Should().BeTrue();
 
             _sut.Settings.Tokens[0].SelectedElement.Should().Be(0);
             _sut.Settings.Tokens[1].SelectedElement.Should().Be(1);
+            _sut.FinalCommandLine.Should().NotBeNullOrEmpty();
         }
 
 
