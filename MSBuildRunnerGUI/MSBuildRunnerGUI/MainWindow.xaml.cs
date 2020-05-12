@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MSBuildRunnerGUI.Logic;
+using MSBuildRunnerGUI.Persistence;
 
 namespace MSBuildRunnerGUI
 {
@@ -24,9 +25,6 @@ namespace MSBuildRunnerGUI
         public MainWindow()
         {
             InitializeComponent();
-
-            // Dirty hack, move data context creation to app
-            DataContext = new MainWindowViewModel(new FileIO());
         }
     }
 }

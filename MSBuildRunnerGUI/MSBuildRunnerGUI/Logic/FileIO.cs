@@ -44,5 +44,10 @@ namespace MSBuildRunnerGUI.Logic
                 return process.ExitCode;
             }
         }
+
+        public void CreateDirectory(string directory)
+        {
+            Directory.CreateDirectory(directory);
+        }
     }
 }

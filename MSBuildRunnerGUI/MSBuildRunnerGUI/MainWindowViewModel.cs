@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,7 @@ using MSBuildRunnerGUI.Annotations;
 using MSBuildRunnerGUI.Contracts;
 using MSBuildRunnerGUI.Data;
 using MSBuildRunnerGUI.Logic;
+using MSBuildRunnerGUI.Persistence;
 using Prism.Commands;
 
 namespace MSBuildRunnerGUI
@@ -33,6 +35,7 @@ namespace MSBuildRunnerGUI
         private string _pathToDirectory;
 
         protected IFileIO _fileIO;
+        private readonly IUserSettingsManager _userSettingsManager;
 
 
         public Settings Settings { get;  }
@@ -70,29 +73,76 @@ namespace MSBuildRunnerGUI
 
         public DelegateCommand LoadProjectsCommand { get; }
 
+        public DelegateCommand OpenPersistedFileLocationCommand { get; }
+
         public DelegateCommand<DirectoryNode> RunBuildForDirectoryCommand { get; }
         public DelegateCommand<Project> RunBuildForProjectCommand { get; }
 
 
-        public MainWindowViewModel(IFileIO fileIO)
+        public MainWindowViewModel(IFileIO fileIO, IUserSettingsManager userSettingsManager)
         {
             _fileIO = fileIO;
+            _userSettingsManager = userSettingsManager;
             PropertyChanged += MainWindowViewModel_PropertyChanged;
 
-            SettingsActive = true;
-            Settings = new Settings();
-            Settings.PropertyChanged += SettingsOnPropertyChanged;
-            CreateFinalCommandLine();
 
             ToggleSettingsCommand = new DelegateCommand(() => SettingsActive = !SettingsActive);
             LoadProjectsCommand = new DelegateCommand(LoadProjects, CanLoadProjects);
-            PathToDirectory = Properties.Settings.Default.PathToDirectory;
+            OpenPersistedFileLocationCommand = new DelegateCommand(OpenPersistedFileLocation);
+
+            SettingsActive = true;
+            Settings = new Settings();
+            LoadSettings(); // done before INPC registration to avoid redundant saves
+            Settings.PropertyChanged += SettingsOnPropertyChanged;
+            
             RootNodes = new ObservableCollection<DirectoryNode>();
 
             RunBuildForDirectoryCommand = new DelegateCommand<DirectoryNode>(RunBuildForDirectory);
             RunBuildForProjectCommand = new DelegateCommand<Project>(RunBuildForProject);
 
            
+        }
+
+        private void OpenPersistedFileLocation()
+        {
+            Process.Start(Path.GetDirectoryName(_userSettingsManager.StorageFile));
+
+        }
+
+        private void LoadSettings()
+        {
+            var userSettings = _userSettingsManager.LoadFromLocation();
+
+            Settings.MsBuildPath = userSettings.MsBuildExePath;
+            Settings.MsBuildCommandLine = userSettings.MsBuildCommandLine;
+
+            if (Settings.Tokens.Count != userSettings.TokenPositions.Count)
+            {
+                throw new InvalidOperationException($"Token count mismatch. Parsed {Settings.Tokens.Count} but token position count was {userSettings.TokenPositions.Count}");
+            }
+
+            if (Settings.Tokens.Count != userSettings.ActiveStates.Count)
+            {
+                throw new InvalidOperationException($"Active state count mismatch. Parsed {Settings.Tokens.Count} but active states count was {userSettings.ActiveStates.Count}");
+            }
+
+            for (var i = 0; i < Settings.Tokens.Count; ++i)
+            {
+                var token = Settings.Tokens[i];
+
+                token.IsActive = userSettings.ActiveStates[i];
+
+                var tokenPosition = userSettings.TokenPositions[i];
+                if (tokenPosition < 0 || tokenPosition >= token.Values.Count)
+                {
+                    throw new InvalidOperationException($"Token position '{tokenPosition}' is invalid. Token '{token.TokenKey}' supports values: (0, {token.Values.Count-1}].");
+                }
+
+                token.SelectedElement = tokenPosition;
+            }
+
+            PathToDirectory = userSettings.LastSetDirectory;
+
         }
 
         private void SettingsOnPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -102,6 +152,22 @@ namespace MSBuildRunnerGUI
                 CreateFinalCommandLine();
             }
 
+            // Persist settings on any Settings changes
+            SaveSettings();
+
+        }
+
+        private void SaveSettings()
+        {
+            var us = new UserSettings();
+            us.MsBuildCommandLine = Settings.MsBuildCommandLine;
+            us.MsBuildExePath = Settings.MsBuildPath;
+            us.LastSetDirectory = PathToDirectory;
+
+            us.ActiveStates = Settings.Tokens.Select(t => t.IsActive).ToList();
+            us.TokenPositions = Settings.Tokens.Select(t => t.SelectedElement).ToList();
+
+            _userSettingsManager.SaveSettings(us);
         }
 
         private void CreateFinalCommandLine()
@@ -246,8 +312,7 @@ namespace MSBuildRunnerGUI
             switch (e.PropertyName)
             {
                 case nameof(PathToDirectory):
-                    Properties.Settings.Default.PathToDirectory = PathToDirectory;
-                    Properties.Settings.Default.Save();
+                    SaveSettings();
                     LoadProjectsCommand.RaiseCanExecuteChanged();
                     break;
             }

@@ -89,28 +89,21 @@ namespace MSBuildRunnerGUI.Data
         {
             PropertyChanged += Settings_PropertyChanged;
             Tokens = new List<Token>();
-           
-            MsBuildCommandLine = Properties.Settings.Default.MsBuidlCommandLine;
-            MsBuildPath = Properties.Settings.Default.MsBuildPath;
 
         }
+
 
         private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MsBuildPath))
             {
-                Properties.Settings.Default.MsBuildPath = MsBuildPath;
                 CheckBuildPath();
             }
 
             if (e.PropertyName == nameof(MsBuildCommandLine))
             {
-                Properties.Settings.Default.MsBuidlCommandLine = MsBuildCommandLine;
                 CheckCommandLine();
-
             }
-
-            Properties.Settings.Default.Save();
         }
 
         private void UpdateTokens()
@@ -166,7 +159,7 @@ namespace MSBuildRunnerGUI.Data
         }
 
         private void CheckCommandLine()
-        {
+        { 
 
             ValidMsCommandLine = MsBuildCommandLine.Contains("%file%");
         }

@@ -83,6 +83,9 @@
   <ItemGroup>
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="Logic\MsBuildRunner.cs" />
+    <Compile Include="Persistence\IUserSettingsManager.cs" />
+    <Compile Include="Persistence\UserSettings.cs" />
+    <Compile Include="Persistence\UserSettingsManager.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -110,6 +113,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
     <PackageReference Include="Prism.Wpf">
       <Version>7.2.0.1422</Version>
     </PackageReference>

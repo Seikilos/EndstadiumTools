@@ -10,13 +10,14 @@ using System.Threading.Tasks;
 using MSBuildRunnerGUI.Annotations;
 using MSBuildRunnerGUI.Data;
 using MSBuildRunnerGUI.Logic;
+using MSBuildRunnerGUI.Persistence;
 using Prism.Commands;
 
 namespace MSBuildRunnerGUI
 {
     public class MainWindowViewModelDesignerOnly : MainWindowViewModel
     {
-        public MainWindowViewModelDesignerOnly() : base(new FileIO())
+        public MainWindowViewModelDesignerOnly() : base(new FileIO(), new UserSettingsManager(new FileIO(),"foo"))
         {
             RootNodes = new ObservableCollection<DirectoryNode>();
           

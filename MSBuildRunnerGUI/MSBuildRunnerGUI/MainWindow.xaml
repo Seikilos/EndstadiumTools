@@ -47,6 +47,7 @@
                 Command="{Binding ToggleSettingsCommand}"
                 Header="_Settings"
                 IsChecked="{Binding SettingsActive}" />
+            <MenuItem Command="{Binding OpenPersistedFileLocationCommand}" Header="_Open settings" />
         </Menu>
 
         <Border

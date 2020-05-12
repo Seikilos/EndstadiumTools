@@ -16,5 +16,6 @@ namespace MSBuildRunnerGUI.Contracts
         void WriteAllText(string file, string text);
 
         int RunProcess(string file, string arguments = null);
+        void CreateDirectory(string directory);
     }
 }
