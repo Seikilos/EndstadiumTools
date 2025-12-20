@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -41,8 +42,74 @@ namespace Daemonizer
         }
     }
 
+    /// <summary>
+    /// Stores information about a monitored process
+    /// </summary>
+    internal class ProcessInfo
+    {
+        public Process Process { get; set; }
+        public string ModulePath { get; set; }
+        public string ProcessName { get; set; }
+        public bool WasClosed { get; set; }
+    }
+
     internal static class Program
     {
+        /// <summary>
+        /// Finds all monitored processes and returns their parent-most instances
+        /// </summary>
+        private static List<ProcessInfo> FindMonitoredProcesses(string[] processNames)
+        {
+            var result = new List<ProcessInfo>();
+
+            foreach (var processName in processNames)
+            {
+                var processes = Process.GetProcessesByName(processName);
+
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        // Find the most parent process of the same name
+                        var currentProcess = process;
+                        Process parent = currentProcess.Parent();
+
+                        while (parent.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            currentProcess = parent;
+                            try
+                            {
+                                parent = currentProcess.Parent();
+                            }
+                            catch (Exception)
+                            {
+                                // No more parents, break
+                                break;
+                            }
+                        }
+
+                        // Check if we already have this process (avoid duplicates)
+                        if (!result.Any(p => p.Process.Id == currentProcess.Id))
+                        {
+                            result.Add(new ProcessInfo
+                            {
+                                Process = currentProcess,
+                                ModulePath = currentProcess.MainModule.FileName,
+                                ProcessName = processName,
+                                WasClosed = false
+                            });
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Process might have exited or access denied, skip it
+                    }
+                }
+            }
+
+            return result;
+        }
+
         [STAThread]
         private static void Main()
         {
@@ -62,8 +129,10 @@ namespace Daemonizer
                 Environment.Exit(1);
             }
 
-            Process importantProcess = null;
-            string modulePath = null;
+            // Hardcoded list of processes to monitor and close before running the target executable
+            var processNamesToMonitor = new[] { "firefox", "OUTLOOK" };
+
+            var monitoredProcesses = new List<ProcessInfo>();
             DialogResult dlgResult = DialogResult.Ignore;
 
             int exitCode = 0;
@@ -85,54 +154,58 @@ namespace Daemonizer
                     throw new DirectoryNotFoundException("Directory not found: " + logLocation);
                 }
 
+                // Find all monitored processes
+                monitoredProcesses = FindMonitoredProcesses(processNamesToMonitor);
 
-                importantProcess = Process.GetProcessesByName("firefox").FirstOrDefault();
-
-                if (importantProcess != null)
+                if (monitoredProcesses.Any())
                 {
-                    // Find the most parent process of firefox
-                    Process parent = importantProcess.Parent();
-                    while (parent.ProcessName == "firefox")
-                    {
-                        importantProcess = parent;
-                        try
-                        {
-                            parent = importantProcess.Parent();
-                        }
-                        catch (Exception)
-                        {
-                            break;
-                        }
-                       
-                    }
+                    // Build a list of process names for the dialog
+                    var processListText = string.Join(", ", monitoredProcesses.Select(p => p.ProcessName).Distinct());
 
-
-                    modulePath = importantProcess.MainModule.FileName;
                     dlgResult = MessageBox.Show(null,
-                        $"Found {importantProcess.ProcessName}, which may prevent backup to properly finish. Should it be closed and reopened automatically later?" +
-                        $"{Environment.NewLine}" +
-                        "Yes: Close and reopen | No: Continue"
-                        , "Programm detected", MessageBoxButtons.YesNoCancel);
+                        $"Found the following processes which may prevent backup from properly finishing: {processListText}" +
+                        $"{Environment.NewLine}{Environment.NewLine}" +
+                        "Should they be closed and reopened automatically later?" +
+                        $"{Environment.NewLine}{Environment.NewLine}" +
+                        "Yes: Close and reopen all | No: Continue without closing | Cancel: Abort"
+                        , "Processes detected", MessageBoxButtons.YesNoCancel);
 
                     if (dlgResult == DialogResult.Yes)
                     {
-                        importantProcess.WaitForInputIdle(10000);
-                        bool res = importantProcess.CloseMainWindow();
-
-                        if (res)
+                        // Close all monitored processes
+                        foreach (var processInfo in monitoredProcesses)
                         {
-                            importantProcess.WaitForExit(30000);
-                        }
+                            try
+                            {
+                                processInfo.Process.WaitForInputIdle(10000);
+                                bool res = processInfo.Process.CloseMainWindow();
 
+                                if (res)
+                                {
+                                    processInfo.Process.WaitForExit(30000);
+                                }
 
-                        if (importantProcess.HasExited == false)
-                        {
-                            dlgResult = DialogResult.Ignore; // Prevents restart of process
+                                if (processInfo.Process.HasExited == false)
+                                {
+                                    // Process timed out, clear the list to prevent restart
+                                    monitoredProcesses.Clear();
+                                    dlgResult = DialogResult.Ignore;
 
+                                    throw new InvalidOperationException(
+                                        $"Waited for process {processInfo.ProcessName} to exit but it timed out, aborting");
+                                }
 
-                            // Waited but process hang, raise error
-                            throw new InvalidOperationException(
-                                $"Waited for process {importantProcess.ProcessName} to exit but it timed out, aborting");
+                                // Mark as successfully closed
+                                processInfo.WasClosed = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                // If any process fails to close, clear the list and rethrow
+                                monitoredProcesses.Clear();
+                                dlgResult = DialogResult.Ignore;
+                                throw new InvalidOperationException(
+                                    $"Failed to close process {processInfo.ProcessName}: {ex.Message}", ex);
+                            }
                         }
                     }
 
@@ -233,9 +306,25 @@ namespace Daemonizer
             }
             finally
             {
-                if (importantProcess != null && dlgResult == DialogResult.Yes)
+                // Restart all processes that were successfully closed
+                if (dlgResult == DialogResult.Yes && monitoredProcesses.Any())
                 {
-                    Process.Start(modulePath);
+                    foreach (var processInfo in monitoredProcesses.Where(p => p.WasClosed))
+                    {
+                        try
+                        {
+                            Process.Start(processInfo.ModulePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log warning but don't fail the overall operation
+                            MessageBox.Show(
+                                $"Warning: Failed to restart process {processInfo.ProcessName}: {ex.Message}",
+                                Resources.Daemonizer_Program_Name,
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                        }
+                    }
                 }
             }
 
