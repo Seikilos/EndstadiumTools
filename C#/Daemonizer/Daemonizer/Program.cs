@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CommandLine;
+using CommandLine.Text;
 using Daemonizer.Properties;
 
 namespace Daemonizer
@@ -111,18 +112,25 @@ namespace Daemonizer
             return result;
         }
 
-        [STAThread]
         private static void Main()
         {
-            Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs().Skip(1))
-                .WithParsed(opts => RunWithOptions(opts))
-                .WithNotParsed(errors => HandleParseErrors(errors));
+            var result = Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs().Skip(1));
+
+            result.WithParsed(opts => RunWithOptions(opts))
+                  .WithNotParsed(errors => HandleParseErrors(result, errors));
         }
 
-        private static void HandleParseErrors(IEnumerable<Error> errors)
+        private static void HandleParseErrors(ParserResult<Options> result, IEnumerable<Error> errors)
         {
-            // Parser automatically displays help text
-            Environment.Exit(1);
+            // CommandLineParser generates complete help text with errors included
+            var helpText = HelpText.AutoBuild(result);
+
+            // Check if this is a help/version request (not an actual error)
+            var isHelpRequest = errors.Any(e => e.Tag == ErrorType.HelpRequestedError || e.Tag == ErrorType.VersionRequestedError);
+            var icon = isHelpRequest ? MessageBoxIcon.Information : MessageBoxIcon.Error;
+
+            MessageBox.Show(helpText.ToString(), Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, icon);
+            Environment.Exit(isHelpRequest ? 0 : 1);
         }
 
         private static void RunWithOptions(Options opts)

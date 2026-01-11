@@ -9,7 +9,7 @@ namespace Daemonizer
             HelpText = "Path to the executable to run.")]
         public string ExePath { get; set; }
 
-        [Option('a', "arguments", Required = true,
+        [Option('a', "arguments", Required = false, Default = "",
             HelpText = "Arguments to pass to the executable.")]
         public string Arguments { get; set; }
 

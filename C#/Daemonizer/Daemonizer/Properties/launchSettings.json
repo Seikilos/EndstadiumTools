@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Daemonizer": {
+      "commandName": "Project"
+    },
+    "Run calc.exe": {
+      "commandName": "Project",
+      "commandLineArgs": "--exe-path c:\\windows\\system32\\calc.exe --log-directory e:\\temp"
+    },
+    "Run calc.exe wait for clock": {
+      "commandName": "Project",
+      "commandLineArgs": "--exe-path c:\\windows\\system32\\calc.exe --log-directory e:\\temp  --processes Time"
+    }
+  }
+}
