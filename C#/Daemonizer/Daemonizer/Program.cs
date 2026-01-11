@@ -139,6 +139,7 @@ namespace Daemonizer
             var processNamesToMonitor = opts.Processes?.ToArray() ?? new string[0];
 
             var monitoredProcesses = new List<ProcessInfo>();
+            var originalProcessNames = new List<string>();
             DialogResult dlgResult = DialogResult.Ignore;
 
             int exitCode = 0;
@@ -165,59 +166,37 @@ namespace Daemonizer
 
                 if (monitoredProcesses.Any())
                 {
-                    // Build a list of process names for the dialog
-                    var processListText = string.Join(", ", monitoredProcesses.Select(p => p.ProcessName).Distinct());
+                    // Store the original process names before they are closed
+                    originalProcessNames = monitoredProcesses.Select(p => p.ProcessName).Distinct().ToList();
+                    bool allProcessesClosed = false;
 
-                    dlgResult = MessageBox.Show(null,
-                        $"Found the following processes which may prevent backup from properly finishing: {processListText}" +
-                        $"{Environment.NewLine}{Environment.NewLine}" +
-                        "Should they be closed and reopened automatically later?" +
-                        $"{Environment.NewLine}{Environment.NewLine}" +
-                        "Yes: Close and reopen all | No: Continue without closing | Cancel: Abort"
-                        , "Processes detected", MessageBoxButtons.YesNoCancel);
-
-                    if (dlgResult == DialogResult.Yes)
+                    while (!allProcessesClosed)
                     {
-                        // Close all monitored processes
-                        foreach (var processInfo in monitoredProcesses)
+                        // Build a list of process names for the dialog
+                        var processListText = string.Join(", ", monitoredProcesses.Select(p => p.ProcessName).Distinct());
+
+                        dlgResult = MessageBox.Show(null,
+                            $"Found the following processes which may prevent backup from properly finishing: {processListText}" +
+                            $"{Environment.NewLine}{Environment.NewLine}" +
+                            "Please close these processes manually." +
+                            $"{Environment.NewLine}{Environment.NewLine}" +
+                            "A message will appear when you can start them again." +
+                            $"{Environment.NewLine}{Environment.NewLine}" +
+                            "OK: Continue | Cancel: Abort"
+                            , "Processes detected", MessageBoxButtons.OKCancel);
+
+                        if (dlgResult == DialogResult.Cancel)
                         {
-                            try
-                            {
-                                processInfo.Process.WaitForInputIdle(10000);
-                                bool res = processInfo.Process.CloseMainWindow();
-
-                                if (res)
-                                {
-                                    processInfo.Process.WaitForExit(30000);
-                                }
-
-                                if (processInfo.Process.HasExited == false)
-                                {
-                                    // Process timed out, clear the list to prevent restart
-                                    monitoredProcesses.Clear();
-                                    dlgResult = DialogResult.Ignore;
-
-                                    throw new InvalidOperationException(
-                                        $"Waited for process {processInfo.ProcessName} to exit but it timed out, aborting");
-                                }
-
-                                // Mark as successfully closed
-                                processInfo.WasClosed = true;
-                            }
-                            catch (Exception ex)
-                            {
-                                // If any process fails to close, clear the list and rethrow
-                                monitoredProcesses.Clear();
-                                dlgResult = DialogResult.Ignore;
-                                throw new InvalidOperationException(
-                                    $"Failed to close process {processInfo.ProcessName}: {ex.Message}", ex);
-                            }
+                            Environment.Exit(2);
                         }
-                    }
 
-                    if (dlgResult == DialogResult.Cancel)
-                    {
-                        Environment.Exit(2);
+                        // Check if all monitored processes are actually closed
+                        monitoredProcesses = FindMonitoredProcesses(processNamesToMonitor);
+
+                        if (!monitoredProcesses.Any())
+                        {
+                            allProcessesClosed = true;
+                        }
                     }
                 }
 
@@ -312,25 +291,16 @@ namespace Daemonizer
             }
             finally
             {
-                // Restart all processes that were successfully closed
-                if (dlgResult == DialogResult.Yes && monitoredProcesses.Any())
+                // Show message that processes can be restarted
+                if (dlgResult == DialogResult.OK && originalProcessNames.Any())
                 {
-                    foreach (var processInfo in monitoredProcesses.Where(p => p.WasClosed))
-                    {
-                        try
-                        {
-                            Process.Start(processInfo.ModulePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log warning but don't fail the overall operation
-                            MessageBox.Show(
-                                $"Warning: Failed to restart process {processInfo.ProcessName}: {ex.Message}",
-                                Resources.Daemonizer_Program_Name,
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Warning);
-                        }
-                    }
+                    var processListText = string.Join(", ", originalProcessNames);
+
+                    MessageBox.Show(null,
+                        $"You can now restart the following processes: {processListText}",
+                        Resources.Daemonizer_Program_Name,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
             }
 
