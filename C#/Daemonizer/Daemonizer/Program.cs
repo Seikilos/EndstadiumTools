@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using CommandLine;
 using Daemonizer.Properties;
 
 namespace Daemonizer
@@ -113,24 +114,21 @@ namespace Daemonizer
         [STAThread]
         private static void Main()
         {
-            // Expect args:
-            // Executable arguments event log_file_on_error
+            Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs().Skip(1))
+                .WithParsed(opts => RunWithOptions(opts))
+                .WithNotParsed(errors => HandleParseErrors(errors));
+        }
 
+        private static void HandleParseErrors(IEnumerable<Error> errors)
+        {
+            // Parser automatically displays help text
+            Environment.Exit(1);
+        }
 
-            var args = Environment.GetCommandLineArgs().ToList();
-
-            if (args.Count != 4 && args.Count != 5)
-            {
-                MessageBox.Show(
-                    "Daemonzier.exe is a tool allowing to run processes in daemon mode, monitor process and write error log on failure while notifying the user.\n" +
-                    "Amount of args given: " + (args.Count - 1) + Environment.NewLine +
-                    "Args: daemonizer.exe <path to executable> <arguments> <directory for log files> <write_always_log>",
-                    Resources.Daemonizer_Program_Name, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                Environment.Exit(1);
-            }
-
-            // Hardcoded list of processes to monitor and close before running the target executable
-            var processNamesToMonitor = new[] { "firefox", "OUTLOOK" };
+        private static void RunWithOptions(Options opts)
+        {
+            // Get processes to monitor from options (empty array if not specified)
+            var processNamesToMonitor = opts.Processes?.ToArray() ?? new string[0];
 
             var monitoredProcesses = new List<ProcessInfo>();
             DialogResult dlgResult = DialogResult.Ignore;
@@ -139,10 +137,10 @@ namespace Daemonizer
 
             try
             {
-                var exePath = args[1];
-                var passedArguments = args[2];
-                var logLocation = args[3];
-                var writeAlways = args.Count > 4 && bool.Parse(args[4]);
+                var exePath = opts.ExePath;
+                var passedArguments = opts.Arguments;
+                var logLocation = opts.LogDirectory;
+                var writeAlways = opts.WriteAlways;
 
                 if (File.Exists(exePath) == false)
                 {
