@@ -62,51 +62,21 @@ namespace Daemonizer
         /// </summary>
         private static List<ProcessInfo> FindMonitoredProcesses(string[] processNames)
         {
+            var hashset = new HashSet<string>(processNames.Select(s => s.ToLower()));
+
             var result = new List<ProcessInfo>();
 
-            foreach (var processName in processNames)
+            var processesLower = Process.GetProcesses().Where(p => hashset.Contains(p.ProcessName.ToLower())).ToList();
+
+            foreach (var p in processesLower)
             {
-                var processes = Process.GetProcessesByName(processName);
-
-                foreach (var process in processes)
+                result.Add(new ProcessInfo
                 {
-                    try
-                    {
-                        // Find the most parent process of the same name
-                        var currentProcess = process;
-                        Process parent = currentProcess.Parent();
-
-                        while (parent.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            currentProcess = parent;
-                            try
-                            {
-                                parent = currentProcess.Parent();
-                            }
-                            catch (Exception)
-                            {
-                                // No more parents, break
-                                break;
-                            }
-                        }
-
-                        // Check if we already have this process (avoid duplicates)
-                        if (!result.Any(p => p.Process.Id == currentProcess.Id))
-                        {
-                            result.Add(new ProcessInfo
-                            {
-                                Process = currentProcess,
-                                ModulePath = currentProcess.MainModule.FileName,
-                                ProcessName = processName,
-                                WasClosed = false
-                            });
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // Process might have exited or access denied, skip it
-                    }
-                }
+                    Process = p,
+                    ModulePath = p.MainModule.FileName,
+                    ProcessName = p.ProcessName,
+                    WasClosed = false
+                });
             }
 
             return result;

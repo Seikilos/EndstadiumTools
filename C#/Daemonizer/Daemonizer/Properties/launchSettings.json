@@ -10,6 +10,10 @@
     "Run calc.exe wait for clock": {
       "commandName": "Project",
       "commandLineArgs": "--exe-path c:\\windows\\system32\\calc.exe --log-directory e:\\temp  --processes Time"
+    },
+    "Run calc wait for outlook": {
+      "commandName": "Project",
+      "commandLineArgs": "--exe-path c:\\windows\\system32\\calc.exe --log-directory e:\\temp  --processes OUTlooK"
     }
   }
 }
